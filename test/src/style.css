@@ -60,7 +60,7 @@ body {
   }
   
   .slider:hover {
-    opacity: 0;
+    opacity: 1;
   }
   
   .slider::-webkit-slider-thumb {
