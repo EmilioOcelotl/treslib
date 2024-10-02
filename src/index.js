@@ -1,2 +1,2 @@
-export { Clase1 } from './GLoop.js';
-export { Clase2 } from './Grain.js';
+export { GLoop } from './GLoop.js';
+export { Grain } from './Grain.js';
