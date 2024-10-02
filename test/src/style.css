@@ -1,6 +1,6 @@
 body {
     font-family: 'Silkscreen', cursive;
-    background-color: #f0f0f0;
+    background-color: #000;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -10,8 +10,8 @@ body {
   
   .container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 20px; 
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas con el mismo ancho */
+    gap: 20px; /* Espacio entre las columnas */
   }
   
   .column {
@@ -60,7 +60,7 @@ body {
   }
   
   .slider:hover {
-    opacity: 1;
+    opacity: 0;
   }
   
   .slider::-webkit-slider-thumb {
@@ -80,4 +80,11 @@ body {
     background: #007bff;
     cursor: pointer;
   }
+
+  canvas {
+    width: 100%;
+    max-width: 200px;
+    height: 100px;
+    background: rgba(0, 0, 0, 1); /* Fondo transparente */
+}
   
