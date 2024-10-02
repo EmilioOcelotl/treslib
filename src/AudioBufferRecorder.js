@@ -1,4 +1,4 @@
-class AudioBufferRecorder {
+export class AudioBufferRecorder {
     constructor(audioContext, micSource, bufferDuration = 5) {
         this.audioContext = audioContext;
         this.micSource = micSource;

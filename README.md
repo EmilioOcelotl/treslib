@@ -1,3 +1,7 @@
 # treslib
 
-Granulación y secuencia con WebAudioAPI.
+Granulación y secuencias con WebAudioAPI.
+
+## Pendientes
+
+- [ ] ScriptProcessor por AudioWorklet en AudioBufferRecorder
