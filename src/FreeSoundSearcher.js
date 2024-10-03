@@ -1,4 +1,4 @@
-export class FreeSoundSearch {
+export class FreeSoundSearcher {
     constructor(apiKey) {
         this.apiKey = apiKey;
     }

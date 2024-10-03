@@ -1,4 +1,4 @@
-export class FreesoundAudioLoader {
+export class FreeSoundAudioLoader {
     constructor(apiKey) {
         this.apiKey = apiKey;
         this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();

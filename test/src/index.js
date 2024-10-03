@@ -1,11 +1,11 @@
 import { AudioBufferRecorder } from '../../src/index.js'
 import { Grain } from '../../src/index.js'
-import { FreeSoundSearch } from '../../src/index.js'
-import { FreesoundAudioLoader } from '../../src/index.js'
+import { FreeSoundSearcher } from '../../src/index.js'
+import { FreeSoundAudioLoader } from '../../src/index.js'
 import { url, apiKey } from './config.js';
 
-const freesound = new FreeSoundSearch(apiKey)
-const audioloader = new FreesoundAudioLoader(apiKey)
+const freesound = new FreeSoundSearcher(apiKey)
+const audioloader = new FreeSoundAudioLoader(apiKey)
 
 const canvas = document.getElementById('waveformCanvas');
 const ctx = canvas.getContext('2d');
