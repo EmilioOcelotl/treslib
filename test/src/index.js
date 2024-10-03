@@ -12,21 +12,22 @@ const ctx = canvas.getContext('2d');
 const startButton = document.getElementById('startButton');
 const stopButton = document.getElementById('stopButton');
 const playButton = document.getElementById('playButton');
+const slider1 = document.getElementById('slider1');
 
 const texto1 = document.getElementById('texto1');
 const buscar1 = document.getElementById('buscar1');
 
 let rec;
-let audioContext;
+let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let analyser;
 let microphone;
+let grain; 
+grain = new Grain(audioContext); 
 
 buscar1.addEventListener('click', async () => {
-    console.log(texto1.value)
 
     async function realizarBusqueda() {
         const resultados = await freesound.buscar(texto1.query);
-        console.log(resultados.resultados[0]);
         return resultados; 
         // luego una función que con los resultados busque un archivo en concreto y lo descargue
     }
@@ -34,19 +35,30 @@ buscar1.addEventListener('click', async () => {
     realizarBusqueda()
     .then(resultados => {
         let res = resultados.resultados[Math.floor(Math.random() * resultados.resultados.length)];
+        console.log(res)
         let srchURL = 'https://freesound.org/apiv2/sounds/' + res.id; 
         console.log("liga:" + srchURL);  
         audioloader.loadAudio(srchURL)
         .then(buffer => {
-            console.log(buffer)
+            grain.set(buffer, 0, 0.5, 0.1, 0.1, 0.1)
+            //grain.load(buffer); 
+            grain.start(); 
+            console.log("leesto")
+            slider1.addEventListener('click', function() {
+                grain.set(buffer, parseFloat(slider1.value), 0.5, 0.1, 0.1, 0.1)
 
+                // grain.pointer = ; 
+                console.log(parseFloat(slider1.value))
+                
+            });
         })   
     })
 })
 
+
+
 startButton.addEventListener('click', async () => {
     // Solicitar acceso al micrófono
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioContext.createAnalyser();
     analyser.fftSize = 2048; // Tamaño de la FFT
 

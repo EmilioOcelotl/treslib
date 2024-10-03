@@ -2,7 +2,7 @@ const { map_range } = require('./utils.js');
 
 export class Grain {
 
-    constructor(aCtx, pointer = 0, freqScale = 0.5, windowSize = 0.1, overlaps = 0.1, windowRandRatio = 0, type = 'grain') {
+    constructor(aCtx, type = 'grain') {
         this.audioCtx = aCtx;
         this.futureTickTime = this.audioCtx.currentTime;
         this.tempo = 120;
@@ -15,16 +15,16 @@ export class Grain {
         this.gainNode = this.audioCtx.createGain();
         this.gainNode.connect(this.audioCtx.destination);
         this.gainNode.gain.value = 1;
-        this.gain = 0.125;
+        this.gain = 1;
 
         this.overlap = 1;
         this.counter = 0;
-        this.buffer = null; // Inicialmente el buffer está vacío
-        this.pointer = pointer; // Punto de inicio
-        this.freqScale = freqScale;
-        this.windowSize = windowSize;
-        this.overlaps = overlaps;
-        this.windowRandRatio = windowRandRatio;
+        this.buffer = 0; // Inicialmente el buffer está vacío
+        this.pointer = this.buffer ? map_range(pointer, 0, 1, 0, this.buffer.duration) : 0;
+        this.freqScale = 1;
+        this.windowSize = 0.1;
+        this.overlaps = 0.1;
+        this.windowRandRatio = 0;
     }
 
     set(buffer, pointer, freqScale, windowSize, overlaps, windowRandRatio) {
