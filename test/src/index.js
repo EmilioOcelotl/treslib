@@ -46,16 +46,12 @@ buscar1.addEventListener('click', async () => {
             console.log("leesto")
             slider1.addEventListener('click', function() {
                 grain.set(buffer, parseFloat(slider1.value), 0.5, 0.1, 0.1, 0.1)
-
                 // grain.pointer = ; 
                 console.log(parseFloat(slider1.value))
-                
             });
         })   
     })
 })
-
-
 
 startButton.addEventListener('click', async () => {
     // Solicitar acceso al micrófono
