@@ -23,6 +23,7 @@ export class Grain {
         this.windowSize = 0.1;
         this.overlaps = 0.1;
         this.windowRandRatio = 0.2; 
+    }
 
     set(buffer, pointer, freqScale, windowSize, overlaps, windowRandRatio) {
         this.buffer = buffer;
