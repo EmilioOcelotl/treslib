@@ -39,34 +39,39 @@ export class Grain {
     }
 
     startGrain(time) {
-        if (!this.buffer) return;
-
+        if (!this.buffer) {
+            console.error("No hay buffer cargado.");
+            return;
+        }
+    
         let algo = Math.random() * this.windowRandRatio;
-        let env = this.createHannEnvelope(this.windowSize + algo);  // Envolvente Hann
+
+        const hannEnvelope = this.createHannWindow(Math.floor(this.windowSize * this.audioCtx.sampleRate));
 
         const source = this.audioCtx.createBufferSource();
+        source.connect(this.gainNode);
         source.buffer = this.buffer;
         source.playbackRate.value = this.freqScale;
-
-        const gainNode = this.audioCtx.createGain();
-        gainNode.gain.setValueCurveAtTime(env, this.audioCtx.currentTime + time, this.windowSize + algo);
-        gainNode.connect(this.gainNode);
-
-        source.connect(gainNode);
+        source.detune.value = algo * 1000;
 
         const startPointer = this.pointer + algo;
-        const duration = this.windowSize + algo;
-
+        const duration = this.clamp(this.windowSize + algo, 0.01, this.buffer.duration); // Duración controlada
+    
+        const grainGainNode = this.audioCtx.createGain();
+        grainGainNode.connect(this.gainNode);
+    
+        grainGainNode.gain.setValueCurveAtTime(hannEnvelope, this.audioCtx.currentTime + time, duration);
+    
+        source.connect(grainGainNode);
         source.start(this.audioCtx.currentTime + time, startPointer, duration);
     }
 
-    createHannEnvelope(duration) {
-        const samples = 512;  
-        const envelope = new Float32Array(samples);
-        for (let i = 0; i < samples; i++) {
-            envelope[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (samples - 1)));
+    createHannWindow(size) {
+        const window = new Float32Array(size);
+        for (let i = 0; i < size; i++) {
+            window[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (size - 1)));
         }
-        return envelope;
+        return window;
     }
 
     scheduler() {
@@ -95,5 +100,9 @@ export class Grain {
 
     stop() {
         clearTimeout(this.timerID);
+    }
+
+    clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
     }
 }
