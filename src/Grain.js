@@ -40,7 +40,6 @@ export class Grain {
     }
 
     startGrain(time) {
-        
         if (!this.buffer) {
             console.error("No hay buffer cargado.");
             return;
@@ -51,10 +50,14 @@ export class Grain {
     
         const source = this.audioCtx.createBufferSource();
         source.connect(this.gainNode);
-    
-        const bufferToPlay = this.freqScale < 0 ? this.reversedBuffer : this.buffer;
+        
+        let bufferToPlay = this.buffer;
+        if (this.freqScale < 0) {
+            bufferToPlay = this.reverseBuffer(this.buffer); // Invertir el buffer si la velocidad es negativa
+        }
+        
         source.buffer = bufferToPlay;
-        source.playbackRate.value = Math.abs(this.freqScale);
+        source.playbackRate.value = Math.abs(this.freqScale); // Reproducción a la velocidad absoluta
     
         const grainGainNode = this.audioCtx.createGain();
         grainGainNode.connect(this.gainNode);
@@ -64,9 +67,10 @@ export class Grain {
     
         const startPointer = this.pointer + algo;
         const duration = this.clamp(this.windowSize + algo, 0.01, this.buffer.duration);
-    
+        
         source.start(this.audioCtx.currentTime + time, startPointer, duration);
     }
+    
     
 
     createHannWindow(size) {
@@ -109,5 +113,23 @@ export class Grain {
         return Math.min(Math.max(value, min), max);
     }
 
+    reverseBuffer(buffer) {
+        const numberOfChannels = buffer.numberOfChannels;
+        const reversedBuffer = this.audioCtx.createBuffer(
+            numberOfChannels,
+            buffer.length,
+            buffer.sampleRate
+        );
+    
+        for (let channel = 0; channel < numberOfChannels; channel++) {
+            const channelData = buffer.getChannelData(channel);
+            const reversedData = reversedBuffer.getChannelData(channel);
+            for (let i = 0, j = channelData.length - 1; i < channelData.length; i++, j--) {
+                reversedData[i] = channelData[j];
+            }
+        }
+    
+        return reversedBuffer;
+    }
     
 }
