@@ -36,35 +36,38 @@ export class Grain {
 
     load(audioFile) {
         this.buffer = audioFile;
+        this.reversedBuffer = this.reverseBuffer(audioFile); // Guarda el buffer invertido
     }
 
     startGrain(time) {
+        
         if (!this.buffer) {
             console.error("No hay buffer cargado.");
             return;
         }
     
         let algo = Math.random() * this.windowRandRatio;
-
         const hannEnvelope = this.createHannWindow(Math.floor(this.windowSize * this.audioCtx.sampleRate));
-
+    
         const source = this.audioCtx.createBufferSource();
         source.connect(this.gainNode);
-        source.buffer = this.buffer;
-        source.playbackRate.value = this.freqScale;
-        source.detune.value = algo * 1000;
-
-        const startPointer = this.pointer + algo;
-        const duration = this.clamp(this.windowSize + algo, 0.01, this.buffer.duration); // Duración controlada
+    
+        const bufferToPlay = this.freqScale < 0 ? this.reversedBuffer : this.buffer;
+        source.buffer = bufferToPlay;
+        source.playbackRate.value = Math.abs(this.freqScale);
     
         const grainGainNode = this.audioCtx.createGain();
         grainGainNode.connect(this.gainNode);
-    
-        grainGainNode.gain.setValueCurveAtTime(hannEnvelope, this.audioCtx.currentTime + time, duration);
+        grainGainNode.gain.setValueCurveAtTime(hannEnvelope, this.audioCtx.currentTime + time, this.windowSize + algo);
     
         source.connect(grainGainNode);
+    
+        const startPointer = this.pointer + algo;
+        const duration = this.clamp(this.windowSize + algo, 0.01, this.buffer.duration);
+    
         source.start(this.audioCtx.currentTime + time, startPointer, duration);
     }
+    
 
     createHannWindow(size) {
         const window = new Float32Array(size);
@@ -105,4 +108,6 @@ export class Grain {
     clamp(value, min, max) {
         return Math.min(Math.max(value, min), max);
     }
+
+    
 }

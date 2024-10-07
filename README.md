@@ -2,6 +2,8 @@
 
 Granulación y grabación con WebAudioAPI. También se incluyen algunas clases adicionales para buscar y descargar archivos de freesound. 
 
+Es necesario 
+
 ## Grain
 
 Granulación tipo Warp1 en SuperCollider. 
