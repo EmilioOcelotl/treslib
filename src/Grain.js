@@ -15,6 +15,13 @@ export class Grain {
         this.gainNode.gain.value = 1;
         this.gain = 1;
 
+        this.analyser = this.audioCtx.createAnalyser();
+        this.analyser.fftSize = 2048;
+        this.analyser.smoothingTimeConstant = 0.8;
+        this.gainNode.connect(this.analyser);
+        
+        this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+
         this.overlap = 0.1;  
         this.counter = 0;
         this.buffer = null;
@@ -130,6 +137,12 @@ export class Grain {
         }
     
         return reversedBuffer;
+    }
+
+    getAvgFrequency() {
+        this.analyser.getByteFrequencyData(this.dataArray);
+        const avgFrequency = this.dataArray.reduce((sum, value) => sum + value, 0) / this.dataArray.length;
+        return avgFrequency;
     }
     
 }
