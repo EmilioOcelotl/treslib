@@ -1,6 +1,6 @@
 {
   "name": "treslib",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "",
   "main": "./src/index.js",
   "scripts": {
