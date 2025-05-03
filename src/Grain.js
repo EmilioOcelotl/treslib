@@ -18,6 +18,13 @@ export class Grain {
         this.gainNode.gain.value = 1;
         this.gain = 1;
 
+        this.analyser = this.audioCtx.createAnalyser();
+        this.analyser.fftSize = 2048;
+        this.analyser.smoothingTimeConstant = 0.8;
+        this.gainNode.connect(this.analyser);
+        
+        this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+
         this.overlap = 0.1;  
         this.counter = 0;
         this.buffer = null;
@@ -100,9 +107,10 @@ export class Grain {
     }
 
     createHannWindow(size) {
-        const window = new Float32Array(size);
-        for (let i = 0; i < size; i++) {
-            window[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (size - 1)));
+        const safeSize = Math.max(1, Math.floor(size)); 
+        const window = new Float32Array(safeSize);
+        for (let i = 0; i < safeSize; i++) {
+            window[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (safeSize - 1)));
         }
         return window;
     }
@@ -144,6 +152,12 @@ export class Grain {
 
     clamp(value, min, max) {
         return Math.min(Math.max(value, min), max);
+    }
+
+    getAvgFrequency() {
+        this.analyser.getByteFrequencyData(this.dataArray);
+        const avgFrequency = this.dataArray.reduce((sum, value) => sum + value, 0) / this.dataArray.length;
+        return avgFrequency;
     }
 
     reverseBuffer(buffer) {
