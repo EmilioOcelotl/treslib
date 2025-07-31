@@ -1,6 +1,6 @@
 # treslib
 
-Granulación y grabación con WebAudioAPI. También se incluyen algunas clases adicionales para buscar y descargar archivos de freesound. 
+Granulación y grabación con WebAudioAPI, buscar y descargar archivos de freesound y detección de onsets. 
 
 ## Grain
 
@@ -38,6 +38,6 @@ Para secuenciar valores de Grain en el tiempo.
 
 Para programar la reproducción de una muestra de sonido con valores temporales cercanos a la música. 
 
-## Pendientes
+## Referencias
 
-- [ ] ScriptProcessor por AudioWorklet en AudioBufferRecorder
+- Collins, N. (2005). "A Comparison of Sound Onset Detection Algorithms with Emphasis on Psychoacoustically Motivated Detection Functions". Proceedings of the AES 118th Convention. Barcelona, España.

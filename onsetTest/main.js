@@ -1,7 +1,8 @@
 import { OnsetDetector } from '../src/OnsetDetector.js';
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let onsetDetector;
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)({
+    sampleRate: 44100 // Forzar sample rate
+  });let onsetDetector;
 let audioSource; // Guardaremos la fuente de audio para poder detenerla
 
 document.getElementById('audioFile').addEventListener('change', (e) => {
@@ -17,33 +18,32 @@ document.getElementById('audioFile').addEventListener('change', (e) => {
   };
 });
 
+// En main.js, asegúrate de:
 async function playAudioFile(filePath) {
-  try {
-    const response = await fetch(filePath);
-    const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-    // 1. Crear la fuente de audio y conectarla a los altavoces
-    audioSource = audioCtx.createBufferSource();
-    audioSource.buffer = audioBuffer;
-    audioSource.connect(audioCtx.destination); // ¡Conecta a los altavoces!
-
-    // 2. Inicializar el detector y pasarle la fuente
-    onsetDetector = new OnsetDetector(audioCtx, audioBuffer);
-    onsetDetector.start((flux) => {
-      console.log(`Onset detectado! Flux: ${flux.toFixed(2)}`);
-      // Ejemplo: Cambiar el color de fondo al detectar un onset
-      document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 80%)`;
-    });
-
-    // 3. Reproducir el audio
-    audioSource.start();
-    audioSource.onended = () => {
-      console.log("Audio terminado");
-      onsetDetector.stop(); // Opcional: Detener el detector
-    };
-
-  } catch (err) {
-    console.error("Error al cargar el audio:", err);
+    try {
+      const response = await fetch(filePath);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+  
+      // 1. Verifica que el buffer tenga datos
+      if (!audioBuffer) throw new Error("AudioBuffer no se creó correctamente");
+      
+      // 2. Inicializa el detector después de cargar el audio
+      onsetDetector = new OnsetDetector(audioCtx, audioBuffer);
+      
+      // 3. Agrega logs para debug
+      console.log("AudioBuffer cargado:", audioBuffer);
+      console.log("Detector inicializado:", onsetDetector);
+      
+      onsetDetector.start((flux) => {
+        console.log(`Onset detectado! Flux: ${flux}`);
+      });
+  
+    } catch (err) {
+      console.error("Error detallado:", {
+        error: err,
+        message: err.message,
+        stack: err.stack
+      });
+    }
   }
-}

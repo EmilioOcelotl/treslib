@@ -1,56 +1,161 @@
+/**
+ * MIREX Onset Detector (Adaptación del algoritmo de Nick Collins)
+ * Basado en:
+ * - Collins, N. (2005). "A Comparison of Sound Onset Detection Algorithms with Emphasis on
+ *   Psychoacoustically Motivated Detection Functions". Proceedings of the AES 118th Convention. 
+ *   Barcelona, España.
+ * - Implementación original en C (2005) y JavaScript (2018) por Nick Collins.
+ * 
+ * Características clave:
+ * - 40 bandas ERB (Equivalent Rectangular Bandwidth)
+ * - Modelado de loudness espectral (fonios)
+ * - Peak picking con umbral adaptativo
+ */
+
 class OnsetDetector {
-    constructor(audioContext, buffer) {
+    constructor(audioContext, buffer, threshold = 0.01) {
         this.audioCtx = audioContext;
         this.buffer = buffer;
-        this.analyser = audioContext.createAnalyser();
-        this.analyser.fftSize = 1024; // Reduce si hay lag
-        this.scriptProcessor = audioContext.createScriptProcessor(1024, 1, 1);
-        this.threshold = 0.3; // Ajusta según necesidad
-        this.lastSpectrum = new Uint8Array(this.analyser.frequencyBinCount); // ← Inicializado
-        this.onsetCallback = null;
-        this.maxFlux = 0.0001;
+        this.threshold = threshold;
+
+        // Configuración FFT (según Collins: 1024 puntos @44.1kHz)
+        this.fftSize = 1024;
+        this.analyser = this.audioCtx.createAnalyser();
+        this.analyser.fftSize = this.fftSize;
+        this.spectrum = new Float32Array(this.analyser.frequencyBinCount);
+
+        // Bandas ERB originales (Collins 2005)
+        this.erbBandBins = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 13, 15, 17, 19, 22, 25, 28, 32, 36, 41, 46, 52, 58, 65, 73, 82, 92, 103, 116, 129, 144, 161, 180, 201, 225, 251, 280, 312, 348, 388, 433, 483, 513];
+        this.erbBandSizes = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 13, 13, 15, 17, 19, 21, 24, 26, 29, 32, 36, 40, 45, 50, 29];
+        this.numERBBands = 40;
+
+        // Contornos de loudness (dB a fonios)
+        this.contours = [[47.88, 59.68, 68.55, 75.48, 81.71, 87.54, 93.24, 98.84, 104.44, 109.94, 115.31], [29.04, 41.78, 51.98, 60.18, 67.51, 74.54, 81.34, 87.97, 94.61, 101.21, 107.74], [20.72, 32.83, 43.44, 52.18, 60.24, 67.89, 75.34, 82.70, 89.97, 97.23, 104.49], [15.87, 27.14, 37.84, 46.94, 55.44, 63.57, 71.51, 79.34, 87.14, 94.97, 102.37], [12.64, 23.24, 33.91, 43.27, 52.07, 60.57, 68.87, 77.10, 85.24, 93.44, 100.90], [10.31, 20.43, 31.03, 40.54, 49.59, 58.33, 66.89, 75.43, 83.89, 92.34, 100.80], [8.51, 18.23, 28.83, 38.41, 47.65, 56.59, 65.42, 74.16, 82.89, 91.61, 100.33], [7.14, 16.55, 27.11, 36.79, 46.16, 55.27, 64.29, 73.24, 82.15, 91.06, 99.97], [5.52, 14.58, 25.07, 34.88, 44.40, 53.73, 62.95, 72.18, 81.31, 90.44, 99.57], [3.98, 12.69, 23.10, 32.99, 42.69, 52.27, 61.66, 71.15, 80.54, 89.93, 99.31], [2.99, 11.43, 21.76, 31.73, 41.49, 51.22, 60.88, 70.51, 80.11, 89.70, 99.30], [2.35, 10.58, 20.83, 30.86, 40.68, 50.51, 60.33, 70.08, 79.83, 89.58, 99.32], [2.05, 10.12, 20.27, 30.35, 40.22, 50.10, 59.97, 69.82, 79.67, 89.52, 99.38], [2.00, 9.93, 20.00, 30.07, 40.00, 49.93, 59.87, 69.80, 79.73, 89.67, 99.60], [2.19, 10.00, 20.00, 30.00, 40.00, 50.00, 59.99, 69.99, 79.98, 89.98, 99.97], [2.71, 10.56, 20.61, 30.71, 40.76, 50.81, 60.86, 70.96, 81.01, 91.06, 101.17], [3.11, 11.05, 21.19, 31.41, 41.53, 51.64, 61.75, 71.95, 82.05, 92.15, 102.33], [2.39, 10.69, 21.14, 31.52, 41.73, 51.95, 62.11, 72.31, 82.46, 92.56, 102.59], [1.50, 10.11, 20.82, 31.32, 41.62, 51.92, 62.12, 72.32, 82.52, 92.63, 102.56], [-0.17, 8.50, 19.27, 29.77, 40.07, 50.37, 60.57, 70.77, 80.97, 91.13, 101.23], [-1.80, 6.96, 17.77, 28.29, 38.61, 48.91, 59.13, 69.33, 79.53, 89.71, 99.86], [-3.42, 5.49, 16.36, 26.94, 37.31, 47.61, 57.88, 68.08, 78.28, 88.41, 98.39], [-4.73, 4.38, 15.34, 25.99, 36.39, 46.71, 57.01, 67.21, 77.41, 87.51, 97.41], [-5.73, 3.63, 14.74, 25.48, 35.88, 46.26, 56.56, 66.76, 76.96, 87.06, 96.96], [-6.24, 3.33, 14.59, 25.39, 35.84, 46.22, 56.52, 66.72, 76.92, 87.04, 97.00], [-6.09, 3.62, 15.03, 25.83, 36.37, 46.70, 57.00, 67.20, 77.40, 87.57, 97.68], [-5.32, 4.44, 15.90, 26.70, 37.28, 47.60, 57.90, 68.10, 78.30, 88.52, 98.78], [-3.49, 6.17, 17.52, 28.32, 38.85, 49.22, 59.52, 69.72, 79.92, 90.20, 100.61], [-0.81, 8.58, 19.73, 30.44, 40.90, 51.24, 61.52, 71.69, 81.87, 92.15, 102.63], [2.91, 11.82, 22.64, 33.17, 43.53, 53.73, 63.96, 74.09, 84.22, 94.45, 104.89], [6.68, 15.19, 25.71, 36.03, 46.25, 56.31, 66.45, 76.49, 86.54, 96.72, 107.15], [10.43, 18.65, 28.94, 39.02, 49.01, 58.98, 68.93, 78.78, 88.69, 98.83, 109.36], [13.56, 21.65, 31.78, 41.68, 51.45, 61.31, 71.07, 80.73, 90.48, 100.51, 111.01], [14.36, 22.91, 33.19, 43.09, 52.71, 62.37, 71.92, 81.38, 90.88, 100.56, 110.56], [15.06, 23.90, 34.23, 44.05, 53.48, 62.90, 72.21, 81.43, 90.65, 99.93, 109.34], [15.36, 23.90, 33.89, 43.31, 52.40, 61.42, 70.29, 79.18, 88.00, 96.69, 105.17], [15.60, 23.90, 33.60, 42.70, 51.50, 60.20, 68.70, 77.30, 85.80, 94.00, 101.70], [15.60, 23.90, 33.60, 42.70, 51.50, 60.20, 68.70, 77.30, 85.80, 94.00, 101.70], [15.60, 23.90, 33.60, 42.70, 51.50, 60.20, 68.70, 77.30, 85.80, 94.00, 101.70], [15.60, 23.90, 33.60, 42.70, 51.50, 60.20, 68.70, 77.30, 85.80, 94.00, 101.70], [15.60, 23.90, 33.60, 42.70, 51.50, 60.20, 68.70, 77.30, 85.80, 94.00, 101.70], [15.60, 23.90, 33.60, 42.70, 51.50, 60.20, 68.70, 77.30, 85.80, 94.00, 101.70]];
+        this.phons = [2, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+        // Historial para cálculo de flux
+        this.loudnessHistory = Array.from({ length: this.numERBBands }, () =>
+            new Float32Array(3).fill(0)
+        );
+        this.historyPointer = 0;
+        this.dfHistory = new Float32Array(7).fill(0);
+        this.dfPointer = 0;
+
+        // Control temporal
+        this.frameCount = 0;
+        this.lastDetectionFrame = -100;
+        this.minEventFrames = 3;
+
+        // Para detener análisis
+        this.interval = null;
+        this.source = null;
+    }
+
+    _energyToPhons(bandIndex, energy) {
+        const db = 10 * Math.log10(energy * 381469.7265625 + 0.001); // dB SPL
+        const contour = this.contours[bandIndex];
+
+        if (db < contour[0]) return 0;
+        if (db > contour[10]) return this.phons[10];
+
+        for (let j = 1; j < 11; j++) {
+            if (db < contour[j]) {
+                const prop = (db - contour[j - 1]) / (contour[j] - contour[j - 1]);
+                return (1 - prop) * this.phons[j - 1] + prop * this.phons[j];
+            }
+        }
+        return this.phons[10];
+    }
+
+    _calculateDetectionFunction(linearSpectrum) {
+        let dfSum = 0;
+        const currentLoudness = new Float32Array(this.numERBBands);
+
+        for (let k = 0; k < this.numERBBands; k++) {
+            const start = this.erbBandBins[k];
+            const size = this.erbBandSizes[k];
+            let bandEnergy = 0;
+
+            for (let h = 0; h < size; h++) {
+                if (start + h >= linearSpectrum.length) break;
+                bandEnergy += linearSpectrum[start + h];
+            }
+            bandEnergy /= size;
+
+            currentLoudness[k] = this._energyToPhons(k, bandEnergy);
+
+            let historicalAvg = 0;
+            for (let j = 0; j < 3; j++) {
+                historicalAvg += this.loudnessHistory[k][j];
+            }
+            historicalAvg /= 3;
+
+            const diff = Math.max(currentLoudness[k] - historicalAvg, 0);
+            dfSum += diff;
+        }
+
+        for (let k = 0; k < this.numERBBands; k++) {
+            this.loudnessHistory[k][this.historyPointer] = currentLoudness[k];
+        }
+        this.historyPointer = (this.historyPointer + 1) % 3;
+
+        this.dfHistory[this.dfPointer] = dfSum * 0.025;
+        this.dfPointer = (this.dfPointer + 1) % 7;
+        this.frameCount++;
+
+        return this._peakPick();
+    }
+
+    _peakPick() {
+        const centerPos = (this.dfPointer + 3) % 7;
+        const centerVal = this.dfHistory[centerPos];
+        let score = 0;
+
+        for (let i = -3; i <= 3; i++) {
+            const pos = (centerPos + i + 7) % 7;
+            let diff = centerVal - this.dfHistory[pos];
+            if (diff < 0) diff *= 10;
+            score += diff;
+        }
+
+        score *= 0.02;
+
+        if (this.frameCount - this.lastDetectionFrame >= this.minEventFrames &&
+            score >= this.threshold) {
+            this.lastDetectionFrame = this.frameCount;
+            return score;
+        }
+        return 0;
     }
 
     start(callback) {
-        this.onsetCallback = callback;
-        const source = this.audioCtx.createBufferSource();
-        source.buffer = this.buffer;
+        this.source = this.audioCtx.createBufferSource();
+        this.source.buffer = this.buffer;
+        this.source.connect(this.analyser);
+        this.analyser.connect(this.audioCtx.destination);
 
-        source.connect(this.analyser);
-        this.analyser.connect(this.scriptProcessor);
-        this.scriptProcessor.connect(this.audioCtx.destination);
+        this.source.start();
 
-        this.scriptProcessor.onaudioprocess = () => {
-            const spectrum = new Uint8Array(this.analyser.frequencyBinCount);
-            this.analyser.getByteFrequencyData(spectrum); // ← Datos en 0-255
+        this.interval = setInterval(() => {
+            this.analyser.getFloatFrequencyData(this.spectrum);
 
-            const flux = this._calculateSpectralFlux(spectrum, this.lastSpectrum);
-            if (flux > this.threshold && this.onsetCallback) {
-                this.onsetCallback(flux);
-            }
+            const linearSpectrum = this.spectrum.map(db => {
+                const mag = Math.pow(10, db / 20);
+                return isFinite(mag) ? mag : 0;
+            });
 
-            this.lastSpectrum = spectrum.slice(); // Guarda copia
-        };
-
-        source.start();
+            const flux = this._calculateDetectionFunction(linearSpectrum);
+            if (flux > 0) callback(flux);
+        }, 25); // cada 25ms
     }
 
-    _calculateSpectralFlux(currentSpectrum, previousSpectrum) {
-        let flux = 0;
-        for (let i = 0; i < currentSpectrum.length; i++) {
-            const diff = currentSpectrum[i] - previousSpectrum[i];
-            if (diff > 0) flux += diff * diff;
+    stop() {
+        if (this.source) {
+            try { this.source.stop(); } catch (e) { }
+            this.source.disconnect();
         }
-        flux = Math.sqrt(flux);
-
-        // Actualiza el máximo histórico
-        if (flux > this.maxFlux) this.maxFlux = flux;
-
-        // Normaliza: flux / maxFlux (rango 0-1)
-        const normalizedFlux = flux / this.maxFlux;
-        return normalizedFlux;
+        if (this.interval) clearInterval(this.interval);
     }
 }
-
 
 export { OnsetDetector };
