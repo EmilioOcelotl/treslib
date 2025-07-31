@@ -14,6 +14,10 @@ Métodos:
 - .start()
 - .stop()
 
+## OnsetDetector 
+
+Es posible detectar onsets o inicios de un evento sonoro. 
+
 ## AudioBufferRecorder
 
 Para grabar la entrada de sonido desde el navegador.
