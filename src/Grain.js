@@ -35,8 +35,12 @@ export class Grain {
         this.windowRandRatio = 0.2;
     }
 
-    set(buffer, pointer, freqScale, windowSize, overlaps, windowRandRatio) {
-        this.buffer = buffer;
+    set(pointer, freqScale, windowSize, overlaps, windowRandRatio) {
+        // this.buffer = buffer;
+        if (!this.buffer) {
+            console.warn("Buffer no está cargado aún. Ejecuta .load() antes de usar .set()");
+            return;
+        }
         this.pointer = map_range(pointer, 0, 1, 0, this.buffer.duration);
         this.currentPointer = this.pointer;
         this.freqScale = freqScale;

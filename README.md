@@ -58,15 +58,15 @@ const avg = grain.getAvgFrequency();
 
 ```
 import { Grain } from './Grain.js';
-import { map_range } from './utils.js';
 
 const ctx = new AudioContext();
 const grain = new Grain(ctx);
 
-// Cargar buffer, luego configurar
-grain.load(audioBuffer);
-grain.set(audioBuffer, 0.25, 1.2, 0.08, 0.05, 0.15);
-
+// Cargar buffer
+grain.load(myDecodedAudioBuffer);
+// Configurar
+grain.set(0.5, 1.0, 0.1, 0.1, 0.2);
+// Iniciar
 grain.start();
 ```
 
