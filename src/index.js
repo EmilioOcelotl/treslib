@@ -4,3 +4,5 @@ export { AudioBufferRecorder } from './AudioBufferRecorder.js';
 export { FreeSoundSearcher } from './FreeSoundSearcher.js';
 export { FreeSoundAudioLoader } from './FreeSoundAudioLoader.js';
 export { OnsetDetector } from './OnsetDetector.js'
+export { Clock } from './Clock.js'
+export { Sequencer } from './Sequencer.js'

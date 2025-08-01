@@ -18,6 +18,14 @@ Métodos:
 
 Es posible detectar onsets o inicios de un evento sonoro. 
 
+## Clock
+
+Sincronización de eventos con un reloj general. 
+
+## Sequencer
+
+
+
 ## AudioBufferRecorder
 
 Para grabar la entrada de sonido desde el navegador.
