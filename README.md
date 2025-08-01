@@ -11,10 +11,10 @@ new Grain(audioContext)
 ```
 ### Métodos
 
-- set(buffer, pointer, freqScale, windowSize, overlaps, windowRandRatio) Configura los parámetros de síntesis granular.
+- set(pointer, freqScale, windowSize, overlaps, windowRandRatio) Configura los parámetros de síntesis granular.
 
 ```
-grain.set(audioBuffer, 0.5, 1, 0.1, 0.05, 0.2);
+grain.set(0.5, 1, 0.1, 0.05, 0.2);
 ```
 
 - load(audioBuffer) Carga el buffer de audio y prepara una versión invertida para reproducción en reversa.
