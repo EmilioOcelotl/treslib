@@ -57,23 +57,17 @@ const avg = grain.getAvgFrequency();
 ### Ejemplo
 
 ```
-const audioCtx = new AudioContext();
-const clock = new Clock(audioCtx, 90, 4);
+import { Grain } from './Grain.js';
+import { map_range } from './utils.js';
 
-const seq1 = new Sequencer([1, 0, 0.5, 0, 0.75], (val, time) => {
-  console.log("seq1:", val, time);
-});
+const ctx = new AudioContext();
+const grain = new Grain(ctx);
 
-const seq2 = new Sequencer([0, 0.8, 0, 0.4], (val, time) => {
-  console.log("seq2:", val, time);
-});
+// Cargar buffer, luego configurar
+grain.load(audioBuffer);
+grain.set(audioBuffer, 0.25, 1.2, 0.08, 0.05, 0.15);
 
-clock.subscribe(time => {
-  seq1.trigger(time);
-  seq2.trigger(time);
-});
-
-clock.start();
+grain.start();
 ```
 
 ## OnsetDetector 
