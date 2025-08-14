@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Granulador con Sequencer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #toggleModeBtn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        #startBtn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+        }
+        #stopBtn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Granulador con Sequencer</h1>
+
+    <input type="file" id="audioFile" accept="audio/*"><br><br>
+
+    <button id="toggleModeBtn">Modo Relativo (OFF)</button>
+    <button id="startBtn">Iniciar</button>
+    <button id="stopBtn">Detener</button>
+
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
