@@ -12,6 +12,8 @@ const audioInput = document.getElementById('audioFile');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const toggleModeBtn = document.getElementById('toggleModeBtn');
+const smoothnessSlider = document.getElementById('smoothnessSlider');
+const bpmControl = document.getElementById('bpmControl');
 
 // Verificar elementos del DOM
 if (!audioInput || !startBtn || !stopBtn || !toggleModeBtn) {
@@ -35,46 +37,51 @@ audioInput.addEventListener('change', async (e) => {
         
         grain = new Grain(audioCtx);
         grain.setParam('overlaps', 0.1);
-        grain.setParam('windowSize', 0.15);
-        grain.setParam('windowRandRatio', 0.05);
+        grain.setParam('windowSize', 0.9);
+        grain.setParam('windowRandRatio', 0.9);
         grain.load(audioBuffer);
         
         console.log('Audio cargado correctamente');
-        alert('Audio cargado. Presiona Iniciar para reproducir.');
     } catch (error) {
         console.error('Error al cargar audio:', error);
         alert('Error al cargar el archivo de audio');
     }
 });
 
-// Configurar secuenciadores
+// Configurar secuenciadores con suavizado
 function setupSequencers() {
-    // Secuenciador de posición
+    const smoothness = smoothnessSlider ? parseFloat(smoothnessSlider.value) : 0.5;
+    const bpm = bpmControl ? parseInt(bpmControl.value) : 60;
+
+    // Secuenciador de posición con suavizado
     pointerSeq = new Sequencer(
         Array.from({ length: 16 }, (_, i) => i / 15), // 0 a 1 en 16 pasos
-        60, // BPM
-        'absolute'
+        bpm,
+        'absolute',
+        smoothness
     );
     pointerSeq.setTarget(grain, 'pointer');
 
-    // Secuenciador de pitch
+    // Secuenciador de pitch con suavizado
     freqSeq = new Sequencer(
-        Array.from({ length: 8 }, () => 0.8 + Math.random() * 0.4), // 0.8 a 1.2
-        120,
-        'absolute'
+        Array.from({ length: 8 }, () => 0.1 + Math.random() * 2), // 0.8 a 1.2
+        bpm * 2,
+        'absolute',
+        smoothness
     );
     freqSeq.setTarget(grain, 'freqScale');
 
     // Secuenciador de tamaño de ventana
     windowSeq = new Sequencer(
-        Array.from({ length: 4 }, () => 0.1 + Math.random() * 0.1), // 0.1 a 0.2
-        30,
-        'absolute'
+        Array.from({ length: 4 }, () => 0.1 + Math.random() * 0.9), // 0.1 a 0.2
+        bpm / 2,
+        'absolute',
+        smoothness
     );
     windowSeq.setTarget(grain, 'windowSize');
 
     // Clock para actualización de parámetros
-    clock = new Clock(audioCtx, 60, 4);
+    clock = new Clock(audioCtx, bpm, 4);
     clock.subscribe(() => {
         grain.updateParams();
     });
@@ -119,3 +126,19 @@ toggleModeBtn.addEventListener('click', () => {
             'Modo Relativo (ON)' : 'Modo Relativo (OFF)';
     }
 });
+
+// Controladores adicionales
+if (smoothnessSlider) {
+    smoothnessSlider.addEventListener('input', () => {
+        const smoothness = parseFloat(smoothnessSlider.value);
+        [pointerSeq, freqSeq, windowSeq].forEach(seq => {
+            if (seq) seq.setSmoothness(smoothness);
+        });
+    });
+}
+
+if (bpmControl) {
+    bpmControl.addEventListener('input', () => {
+        if (pointerSeq) setupSequencers();
+    });
+}

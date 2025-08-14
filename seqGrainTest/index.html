@@ -3,44 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Granulador con Sequencer</title>
+    <title>Granulador con Sequencer Avanzado</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            line-height: 1.6;
+        }
+        .control-group {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
         button {
-            padding: 8px 16px;
-            margin: 5px;
-            cursor: pointer;
-        }
-        #toggleModeBtn {
+            padding: 8px 15px;
+            margin-right: 10px;
             background-color: #4CAF50;
             color: white;
             border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
-        #startBtn {
-            background-color: #2196F3;
-            color: white;
-            border: none;
+        button:hover {
+            opacity: 0.9;
         }
         #stopBtn {
             background-color: #f44336;
-            color: white;
-            border: none;
+        }
+        #toggleModeBtn {
+            background-color: #2196F3;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
-    <h1>Granulador con Sequencer</h1>
-
-    <input type="file" id="audioFile" accept="audio/*"><br><br>
-
-    <button id="toggleModeBtn">Modo Relativo (OFF)</button>
-    <button id="startBtn">Iniciar</button>
-    <button id="stopBtn">Detener</button>
+    <h1>Granulador con Sequencer Avanzado</h1>
+    
+    <div class="control-group">
+        <h2>Controles Principales</h2>
+        <input type="file" id="audioFile" accept="audio/*">
+        <button id="toggleModeBtn">Modo Relativo (OFF)</button>
+        <button id="startBtn">Iniciar</button>
+        <button id="stopBtn">Detener</button>
+    </div>
+    
+    <div class="control-group">
+        <h2>Configuración de Secuenciador</h2>
+        
+        <label for="smoothnessSlider">Suavidad de Transición (0-1):</label>
+        <input type="range" id="smoothnessSlider" min="0" max="1" step="0.01" value="0.5">
+        
+        <label for="bpmControl">BPM (Tempo):</label>
+        <input type="range" id="bpmControl" min="40" max="180" step="1" value="60">
+    </div>
 
     <script type="module" src="./main.js"></script>
 </body>
