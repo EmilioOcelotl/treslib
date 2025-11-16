@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Granular Test Minimal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .control-group {
+            margin: 10px 0;
+        }
+        
+        label {
+            display: inline-block;
+            width: 150px;
+        }
+        
+        input[type="range"] {
+            width: 200px;
+        }
+        
+        .value {
+            display: inline-block;
+            width: 50px;
+            color: #4CAF50;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        button:disabled {
+            background: #666;
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 5px;
+        }
+        
+        .sequencer {
+            margin: 20px 0;
+        }
+        
+        .step {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #333;
+            margin: 2px;
+            text-align: center;
+            line-height: 40px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        .step.active {
+            background: #4CAF50;
+        }
+        
+        .file-input {
+            margin: 10px 0;
+        }
+        
+        .presets {
+            margin: 15px 0;
+        }
+        
+        .preset-btn {
+            background: #2196F3;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Granular Engine Test</h1>
+    
+    <div class="file-input">
+        <input type="file" id="audioFile" accept="audio/*">
+        <button id="loadBtn">Cargar Sample</button>
+    </div>
+    
+    <div>
+        <button id="engineBtn" disabled>Iniciar Engine</button>
+        <button id="seqBtn" disabled>Iniciar Sequencer</button>
+    </div>
+    
+    <div class="presets">
+        <strong>Presets:</strong>
+        <button class="preset-btn" data-preset="dense">Textura Densa</button>
+        <button class="preset-btn" data-preset="subtle">Textura Sutil</button>
+        <button class="preset-btn" data-preset="cloud">Nube de Sonido</button>
+    </div>
+    
+    <div class="control-group">
+        <label>Pointer:</label>
+        <input type="range" id="pointer" min="0" max="1" step="0.01" value="0">
+        <span id="pointerVal" class="value">0</span>
+    </div>
+    
+    <div class="control-group">
+        <label>Rate:</label>
+        <input type="range" id="rate" min="0.1" max="4" step="0.1" value="1">
+        <span id="rateVal" class="value">1</span>
+    </div>
+    
+    <div class="control-group">
+        <label>Amp:</label>
+        <input type="range" id="amp" min="0" max="2" step="0.01" value="1">
+        <span id="ampVal" class="value">1</span>
+    </div>
+    
+    <div class="control-group">
+        <label>Window Size:</label>
+        <input type="range" id="windowSize" min="0.01" max="0.5" step="0.01" value="0.1">
+        <span id="windowSizeVal" class="value">0.1</span>
+    </div>
+    
+    <div class="control-group">
+        <label>Overlaps:</label>
+        <input type="range" id="overlaps" min="1" max="16" step="1" value="4">
+        <span id="overlapsVal" class="value">4</span>
+    </div>
+    
+    <div class="control-group">
+        <label>Grain Density:</label>
+        <input type="range" id="grainDensity" min="0.01" max="0.2" step="0.01" value="0.05">
+        <span id="grainDensityVal" class="value">0.05</span>
+    </div>
+    
+    <div class="sequencer">
+        <h3>Pointer Sequence (click para cambiar)</h3>
+        <div id="pointerSeq"></div>
+    </div>
+    
+    <div class="status">
+        Estado: <span id="status">Selecciona un archivo de audio</span><br>
+        Step: <span id="currentStep">-</span>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
