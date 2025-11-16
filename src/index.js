@@ -6,3 +6,5 @@ export { FreeSoundAudioLoader } from './FreeSoundAudioLoader.js';
 export { OnsetDetector } from './OnsetDetector.js'
 export { Clock } from './Clock.js'
 export { Sequencer } from './Sequencer.js'
+export { GrainEngine } from './GrainEngine.js'
+export { GrainSequencer } from './GrainSequencer.js'
