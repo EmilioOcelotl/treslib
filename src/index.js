@@ -3,8 +3,12 @@ export { Grain } from './Grain.js';
 export { AudioBufferRecorder } from './AudioBufferRecorder.js';
 export { FreeSoundSearcher } from './FreeSoundSearcher.js';
 export { FreeSoundAudioLoader } from './FreeSoundAudioLoader.js';
-export { OnsetDetector } from './OnsetDetector.js'
-export { Clock } from './Clock.js'
-export { Sequencer } from './Sequencer.js'
-export { GrainEngine } from './GrainEngine.js'
-export { GrainSequencer } from './GrainSequencer.js'
+export { OnsetDetector } from './OnsetDetector.js';
+export { Clock } from './Clock.js';
+export { Sequencer } from './Sequencer.js';
+export { GrainEngine } from './GrainEngine.js';
+export { GrainSequencer } from './GrainSequencer.js';
+export { AudioManager } from './AudioManager.js';
+export { ClothMeshManager } from './ClothMeshManager.js';
+export { HydraTextureManager } from './HydraTextureManager.js';
+export { snapshotCompressor } from './snapshotCompressor.js';
