@@ -11,4 +11,4 @@ export { GrainSequencer } from './GrainSequencer.js';
 export { AudioManager } from './AudioManager.js';
 export { ClothMeshManager } from './ClothMeshManager.js';
 export { HydraTextureManager } from './HydraTextureManager.js';
-export { snapshotCompressor } from './snapshotCompressor.js';
+export { SnapshotCompressor } from './SnapshotCompressor.js';
