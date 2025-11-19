@@ -1,3 +1,5 @@
+/// --- Clase obsoleta, se queda para documentación 
+
 // Mapeo tipo Processing
 
 function map_range(value, low1, high1, low2, high2) {

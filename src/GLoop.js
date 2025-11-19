@@ -1,3 +1,6 @@
+/// --- Clase obsoleta, se queda para documentación 
+
+
 // En general: Hay una contradicción entre GLoop y la forma en la que funciona grain. 
 // Grain por sí mismo es un secuenciador que sigue la sintaxis de Player pero GLoop no funciona igual 
 // Entonces necesito o hacer otra clase que modifique Grains como secuencia o que en el mismo Grains exista la secuencia. 

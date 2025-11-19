@@ -1,3 +1,5 @@
+/// --- Clase obsoleta, se queda para documentación 
+
 class Sequencer {
   /**
    * @param {Array<number>} sequence - Valores a reproducir en cada paso

@@ -1,3 +1,5 @@
+/// --- Clase obsoleta, se queda para documentación 
+
 import { map_range } from './utils.js';
 
 export class Grain {

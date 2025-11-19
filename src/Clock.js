@@ -1,3 +1,5 @@
+/// --- Clase obsoleta, se queda para documentación 
+
 class Clock {
     constructor(audioCtx, bpm = 120, subdivision = 4) {
       this.audioCtx = audioCtx;
