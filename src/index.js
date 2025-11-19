@@ -1,10 +1,10 @@
-export { AudioBufferRecorder } from './AudioBufferRecorder.js'; // 
+export { AudioBufferRecorder } from './AudioBufferRecorder.js'; 
 export { FreeSoundSearcher } from './FreeSoundSearcher.js';
 export { FreeSoundAudioLoader } from './FreeSoundAudioLoader.js';
-export { OnsetDetector } from './OnsetDetector.js';// 
-export { GrainEngine } from './GrainEngine.js'; //
-export { GrainSequencer } from './GrainSequencer.js'; //
-export { default as AudioManager } from './AudioManager.js'; // 
-export { default as ClothMeshManager } from './ClothMeshManager.js'; // 
-export { default as HydraTextureManager } from './HydraTextureManager.js'; //
-export { default as SnapshotCompressor } from './SnapshotCompressor.js'; // 
+export { OnsetDetector } from './OnsetDetector.js';
+export { GrainEngine } from './GrainEngine.js';
+export { GrainSequencer } from './GrainSequencer.js';
+export { default as AudioManager } from './AudioManager.js';
+export { default as ClothMeshManager } from './ClothMeshManager.js';
+export { default as HydraTextureManager } from './HydraTextureManager.js';
+export { default as SnapshotCompressor } from './SnapshotCompressor.js';
