@@ -148,4 +148,15 @@ export default class HydraTextureManager {
     update() {
         this.threeTexture.needsUpdate = true;
     }
+
+    hush() {
+        try {
+            this.hydra.hush();
+            this.threeTexture.needsUpdate = true;
+            console.log("Hydra hush ejecutado.");
+        } catch (e) {
+            console.error("Error en Hydra hush:", e);
+        }
+    }
+    
 }
