@@ -1,0 +1,324 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #111;
+    color: #ccc;
+    font-family: 'Courier New', monospace;
+    overflow-x: hidden;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    height: calc(100vh - 40px);
+}
+
+.control-panel {
+    background: #222;
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.control-panel h3 {
+    color: #4f9;
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    text-align: center;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group label {
+    color: #8bc;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#snapshotInput {
+    background: #1a1a1a;
+    color: #4f9;
+    border: 1px solid #444;
+    padding: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+#snapshotInput:focus {
+    outline: none;
+    border-color: #4a9;
+    box-shadow: 0 0 10px rgba(74, 153, 255, 0.3);
+}
+
+#applyCustomBtn {
+    background: linear-gradient(135deg, #3a3, #282);
+    color: #fff;
+    border: 1px solid #444;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+}
+
+#applyCustomBtn:hover {
+    background: linear-gradient(135deg, #4b4, #393);
+}
+
+.snapshot-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.snapshot-examples p {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+}
+
+.snapshot-btn {
+    background: linear-gradient(135deg, #333, #222);
+    color: #ccc;
+    border: 1px solid #444;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.snapshot-btn:hover {
+    background: linear-gradient(135deg, #444, #333);
+    border-color: #5a9;
+    color: #fff;
+}
+
+.status-display {
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    font-size: 13px;
+    color: #8a8;
+    text-align: center;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.param-display {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #333;
+}
+
+.param-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #8bc;
+}
+
+.param-value {
+    color: #0f0;
+    font-weight: bold;
+}
+
+.mode-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.mode-buttons button {
+    background: linear-gradient(135deg, #2a3a3a, #1a2a2a);
+    color: #8bc;
+    border: 1px solid #444;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.mode-buttons button:hover {
+    background: linear-gradient(135deg, #3a4a4a, #2a3a3a);
+    border-color: #5a9;
+    color: #afc;
+}
+
+.mode-buttons button.active {
+    background: linear-gradient(135deg, #1a4a2a, #1a3a2a);
+    color: #6f9;
+    border-color: #4a9;
+    box-shadow: 0 0 15px rgba(74, 153, 255, 0.4);
+}
+
+.control-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.control-buttons button {
+    background: linear-gradient(135deg, #333, #222);
+    color: #ccc;
+    border: 1px solid #444;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.control-buttons button:hover {
+    background: linear-gradient(135deg, #444, #333);
+    border-color: #5a9;
+    color: #fff;
+}
+
+.stats {
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    font-size: 12px;
+    color: #8a8;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    margin-top: 10px;
+}
+
+.visualization-area {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 20px;
+}
+
+.view-container {
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.view-container h4 {
+    color: #8bc;
+    font-size: 18px;
+    margin: 0;
+    text-align: center;
+}
+
+canvas {
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: #000;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    transition: border-color 0.3s;
+}
+
+canvas:hover {
+    border-color: #444;
+}
+
+#view2D {
+    width: 320px;
+    height: 320px;
+    image-rendering: pixelated;
+}
+
+#canvas3D {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+}
+
+/* Scrollbar personalizada */
+.control-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.control-panel::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+}
+
+.control-panel::-webkit-scrollbar-thumb {
+    background: #4a9;
+    border-radius: 4px;
+}
+
+.control-panel::-webkit-scrollbar-thumb:hover {
+    background: #6fc;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .container {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    
+    .control-panel {
+        max-height: 500px;
+    }
+    
+    .visualization-area {
+        grid-template-rows: auto auto; /* Cambiado para apilar en pantallas más pequeñas */
+    }
+}
+
+@media (max-width: 768px) {
+    .mode-buttons,
+    .control-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    #view2D {
+        width: 280px;
+        height: 280px;
+    }
+    
+    #canvas3D {
+        height: 400px;
+    }
+}

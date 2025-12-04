@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pirámide Glitch 3D</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+            "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.128.0/examples/jsm/controls/OrbitControls.js"
+        }
+    }
+    </script>
+    <script type="module" src="main.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="control-panel">
+            <h3>Pirámide Glitch por Snapshot</h3>
+            
+            <div class="input-group">
+                <label for="snapshotInput">Snapshot de Entrada:</label>
+                <input id="snapshotInput" type="text" value="un-snapshot-de-ejemplo-complejo-y-largo" placeholder="Ingresa cualquier texto...">
+                <button id="applyCustomBtn">Aplicar</button>
+            </div>
+
+            <div class="snapshot-examples">
+                <p>O prueba con estos ejemplos:</p>
+                <button class="snapshot-btn" data-snapshot="bright">Bright</button>
+                <button class="snapshot-btn" data-snapshot="dark">Dark</button>
+                <button class="snapshot-btn" data-snapshot="contrast">Contrast</button>
+                <button class="snapshot-btn" data-snapshot="complex">Complex</button>
+                <button class="snapshot-btn" data-snapshot="smooth">Smooth</button>
+            </div>
+
+            <div id="status" class="status-display">
+                Genera una pirámide a partir de un snapshot de texto.
+            </div>
+
+            <div id="paramDisplay" class="param-display">
+                <!-- Los parámetros derivados del snapshot se mostrarán aquí -->
+            </div>
+            
+            <div class="mode-buttons">
+                <button id="btnSolid" class="active">Sólido</button>
+                <button id="btnWire">Wireframe</button>
+                <button id="btnFracture">Solo Fracturas</button>
+            </div>
+            
+            <div class="control-buttons">
+                <button id="resetView">Reset Vista</button>
+                <button id="toggleAnimation">Animación: ON</button>
+                <button id="toggleGlitch">Glitch Activo: ON</button>
+            </div>
+            
+            <div class="stats" id="stats">
+                Vértices: 0 | Caras: 0 | FPS: 0
+            </div>
+            
+        </div>
+        
+        <div class="visualization-area">
+            <div class="view-container">
+                <h4>Patrón 2D (del Snapshot)</h4>
+                <canvas id="view2D" width="320" height="320"></canvas>
+            </div>
+            
+            <div class="view-container">
+                <h4>Pirámide 3D</h4>
+                <canvas id="canvas3D"></canvas>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>
