@@ -62,7 +62,7 @@ sequencer.addAmpSequence(
   granular
 );
 
-/// Opcional: callback para visualización
+// Opcional: callback para visualización
 sequencer.onStepChange = (step, values) => {
   console.log(`Step ${step}:`, values);
 };
@@ -240,7 +240,7 @@ console.log('Snapshot comprimido:', compressedHex); // Ej: "A3F2C45B..."
 // Extraer paleta de colores estilo RISO
 const risoPalette = compressor.extractRisoPalette(hydraCanvas);
 console.log('Paleta RISO:', risoPalette);
-//// Ej: [{r: 255, g: 0, b: 64}, {r: 0, g: 192, b: 255}, ...]
+// Ej: [{r: 255, g: 0, b: 64}, {r: 0, g: 192, b: 255}, ...]
 
 // Descomprimir para visualización
 const compressedBytes = compressor.hexToBytes(compressedHex);
@@ -265,7 +265,7 @@ import { OnsetDetector } from 'treslib';
 
 const audioCtx = new AudioContext();
 
-/// Modo 1: buffer de audio (reproduce y detecta)
+// Modo 1: buffer de audio (reproduce y detecta)
 const detector = new OnsetDetector(audioCtx, audioBuffer, 0.015);
 
 detector.start((flux) => {
@@ -273,7 +273,7 @@ detector.start((flux) => {
   granularEngine.setPointer(Math.random());
 });
 
-/// Modo 2: micrófono (solo detección, sin reproducción)
+// Modo 2: micrófono (solo detección, sin reproducción)
 navigator.mediaDevices.getUserMedia({ audio: true })
   .then(stream => {
     const micSource = audioCtx.createMediaStreamSource(stream);
@@ -342,9 +342,10 @@ resultados.resultados.forEach(sound => {
 const pagina2 = await searcher.buscar('glitch', 2, 15);
 
 // Integración con cargador de audio
+import { FreeSoundAudioLoader } from 'treslib';
 resultados.resultados.forEach(async (sound) => {
   const loader = new FreeSoundAudioLoader(searcher.apiKey);
-  const audioBuffer = await loader.cargar(sound.id);
+  const audioBuffer = await loader.loadAudio(sound.id);
   // Usar con GrainEngine u otros procesadores
 });
 ```
@@ -370,6 +371,7 @@ const audioBuffer = await loader.loadAudio(primerSonido.id);
 
 // Usar inmediatamente con GrainEngine
 const granular = new GrainEngine(audioCtx, audioBuffer);
+granular.connect(audioCtx.destination);
 granular.start();
 
 // O cargar múltiples samples para banco de sonidos
