@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapshotCompressor — treslib</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #d4d4d4;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            line-height: 1.6;
+        }
+
+        a { color: #7ec8e3; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 24px; }
+        header p { color: #666; font-size: 0.9em; margin: 4px 0 0; }
+        .back { font-size: 0.85em; color: #555; margin-bottom: 12px; display: block; }
+        h1 { font-size: 1.4em; margin: 0; color: #ddd; }
+
+        h2 {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #444;
+            margin: 28px 0 10px;
+            border-bottom: 1px solid #161616;
+            padding-bottom: 6px;
+        }
+
+        .description {
+            font-size: 0.88em;
+            color: #555;
+            border-left: 2px solid #1e1e1e;
+            padding-left: 12px;
+            margin-bottom: 28px;
+        }
+
+        /* Área principal: fuente | resultado */
+        .stage {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+            margin-bottom: 28px;
+        }
+
+        .panel-label {
+            font-size: 0.72em;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 8px;
+        }
+
+        canvas {
+            display: block;
+            border: 1px solid #1a1a1a;
+            background: #000;
+        }
+
+        #sourceCanvas {
+            width: 100%;
+            aspect-ratio: 1;
+            cursor: crosshair;
+        }
+
+        .result-canvases {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Canvas de resultado escalado para hacerlo visible */
+        #resultCanvas {
+            width: 100%;
+            aspect-ratio: 1;
+            image-rendering: pixelated;
+        }
+
+        /* Hex output */
+        .hex-block {
+            background: #0d0d0d;
+            border: 1px solid #1a1a1a;
+            border-radius: 3px;
+            padding: 10px 12px;
+            font-size: 0.72em;
+            color: #444;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+        .hex-block .hex-preview { color: #5a7a6a; }
+        .hex-block .hex-meta {
+            color: #555;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+        }
+
+        /* Presets y acciones */
+        .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+
+        button {
+            background: #0d0d0d;
+            color: #666;
+            border: 1px solid #222;
+            padding: 7px 14px;
+            font-family: inherit;
+            font-size: 0.82em;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        button:hover { border-color: #444; color: #aaa; }
+        button.active { border-color: #7ec8e3; color: #7ec8e3; }
+        button.capture {
+            border-color: #3a5a4a;
+            color: #5a8a6a;
+        }
+        button.capture:hover { border-color: #5a9a7a; color: #7ec8a0; }
+
+        /* Dithering info */
+        .dither-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 28px);
+            gap: 2px;
+            margin-top: 8px;
+        }
+        .dither-cell {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            border: 1px solid #1a1a1a;
+        }
+
+        .status-bar {
+            font-size: 0.78em;
+            color: #333;
+            border-top: 1px solid #161616;
+            padding-top: 14px;
+            margin-top: 24px;
+        }
+        .status-bar span { color: #555; }
+    </style>
+</head>
+<body>
+
+    <a class="back" href="../../index.html">← treslib docs</a>
+
+    <header>
+        <h1>SnapshotCompressor</h1>
+        <p>Compresión de frames visuales a 2bpp con dithering</p>
+    </header>
+
+    <p class="description">
+        Captura un canvas, reduce a escala de grises de 4 niveles (2 bits por píxel)
+        y aplica dithering ordenado. El resultado es una cadena hex compacta que puede
+        guardarse, transmitirse y reconstruirse.
+    </p>
+
+    <h2>Fuentes de prueba</h2>
+    <div class="actions">
+        <button data-preset="gradient" class="active">Degradado</button>
+        <button data-preset="circles">Círculos</button>
+        <button data-preset="checkers">Ajedrez</button>
+        <button data-preset="noise">Ruido</button>
+        <button data-preset="stripes">Franjas</button>
+    </div>
+
+    <div class="stage">
+        <div>
+            <div class="panel-label">Fuente (300 × 300)</div>
+            <canvas id="sourceCanvas" width="300" height="300"></canvas>
+        </div>
+        <div class="result-canvases">
+            <div>
+                <div class="panel-label">Resultado 2bpp — 80 × 80 (pixelated)</div>
+                <canvas id="resultCanvas" width="80" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button id="btnCapture" class="capture">Capturar y comprimir →</button>
+        <button id="btnRotate">Rotar 90°</button>
+    </div>
+
+    <h2>Hex comprimido</h2>
+    <div class="hex-block" id="hexBlock">
+        <div class="hex-meta" id="hexMeta">—</div>
+        <div class="hex-preview" id="hexPreview">Pulsa "Capturar y comprimir" para ver el resultado</div>
+    </div>
+
+    <h2>Matriz de dithering (Bayer 4×4)</h2>
+    <div class="description" style="margin-bottom:12px">
+        Umbral ordenado aplicado pixel a pixel. Cada celda indica el valor sumado antes
+        de cuantizar a 4 niveles (0–3). Produce el patrón de puntos visible en la imagen comprimida.
+    </div>
+    <div class="dither-grid" id="ditherGrid"></div>
+
+    <div class="status-bar">
+        Estado: <span id="status">Selecciona una fuente y captura</span>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
