@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnsetDetector — treslib</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f0f0f;
+            color: #d4d4d4;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            line-height: 1.6;
+        }
+
+        a { color: #7ec8e3; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 32px; }
+        header p { color: #888; font-size: 0.9em; margin: 4px 0 0; }
+        .back { font-size: 0.85em; color: #888; margin-bottom: 12px; display: block; }
+
+        h1 { font-size: 1.4em; margin: 0; color: #fff; }
+        h2 {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #555;
+            margin: 28px 0 12px;
+            border-bottom: 1px solid #1e1e1e;
+            padding-bottom: 6px;
+        }
+
+        .description {
+            font-size: 0.9em;
+            color: #aaa;
+            border-left: 2px solid #333;
+            padding-left: 14px;
+            margin-bottom: 28px;
+        }
+
+        /* Mode tabs */
+        .mode-tabs { display: flex; gap: 4px; margin-bottom: 24px; }
+        .tab {
+            background: #1e1e1e;
+            color: #666;
+            border: 1px solid #333;
+            padding: 7px 18px;
+            font-family: inherit;
+            font-size: 0.85em;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .tab.active { border-color: #7ec8e3; color: #7ec8e3; }
+
+        /* Mode panels */
+        .mode-panel { display: none; margin-bottom: 20px; }
+        .mode-panel.visible { display: block; }
+
+        .load-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        input[type="file"] { color: #aaa; font-size: 0.85em; }
+
+        button {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 0.85em;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover { border-color: #7ec8e3; color: #7ec8e3; }
+        button:disabled { opacity: 0.35; cursor: default; }
+        button.active { border-color: #7ec8e3; color: #7ec8e3; }
+
+        .actions { display: flex; gap: 8px; margin-bottom: 24px; }
+
+        /* Controls */
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+        .control-row {
+            display: grid;
+            grid-template-columns: 160px 1fr 52px;
+            align-items: center;
+            gap: 12px;
+        }
+        .control-row label { font-size: 0.85em; color: #aaa; }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 3px;
+            background: #333;
+            outline: none;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #7ec8e3;
+            cursor: pointer;
+        }
+        .val { font-size: 0.8em; color: #7ec8e3; text-align: right; }
+
+        /* Visualizador */
+        .visualizer {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            margin-bottom: 28px;
+            padding: 24px;
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 4px;
+        }
+
+        .pulse-wrap {
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pulse {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            transition: transform 0.05s ease-out, background 0.05s ease-out, border-color 0.05s ease-out;
+        }
+        .pulse.triggered {
+            background: #7ec8e3;
+            border-color: #7ec8e3;
+        }
+
+        .vis-info { font-size: 0.82em; color: #555; }
+        .vis-info .flux-val { font-size: 1.6em; color: #7ec8e3; display: block; margin-bottom: 4px; }
+        .vis-info .onset-count { color: #666; }
+        .vis-info .onset-count span { color: #aaa; }
+
+        /* Status */
+        .status-bar {
+            font-size: 0.8em;
+            color: #666;
+            border-top: 1px solid #222;
+            padding-top: 14px;
+        }
+        .status-bar span { color: #aaa; }
+    </style>
+</head>
+<body>
+    <a class="back" href="../../index.html">← treslib docs</a>
+
+    <header>
+        <h1>OnsetDetector</h1>
+        <p>Detección de ataques sonoros · algoritmo ERB de Nick Collins (MIREX 2005)</p>
+    </header>
+
+    <p class="description">
+        Detecta onsets (ataques sonoros) usando 40 bandas ERB y modelado de loudness espectral.
+        Modo buffer: reproduce un archivo y detecta simultáneamente.
+        Modo micrófono: análisis en tiempo real sin reproducción.
+    </p>
+
+    <h2>Modo</h2>
+    <div class="mode-tabs">
+        <button class="tab active" data-mode="buffer">Buffer</button>
+        <button class="tab" data-mode="mic">Micrófono</button>
+    </div>
+
+    <div class="mode-panel visible" id="panel-buffer">
+        <div class="load-row">
+            <input type="file" id="audioFile" accept="audio/*">
+            <button id="loadBtn">Cargar</button>
+        </div>
+    </div>
+
+    <div class="mode-panel" id="panel-mic">
+        <p style="font-size:0.85em; color:#888; margin: 0 0 12px;">
+            Se solicitará acceso al micrófono al iniciar.
+        </p>
+    </div>
+
+    <div class="actions">
+        <button id="startBtn" disabled>Iniciar detección</button>
+    </div>
+
+    <h2>Parámetros</h2>
+    <div class="controls">
+        <div class="control-row">
+            <label>Threshold</label>
+            <input type="range" id="threshold" min="0.001" max="0.1" step="0.001" value="0.015">
+            <span id="thresholdVal" class="val">0.015</span>
+        </div>
+    </div>
+
+    <h2>Visualización</h2>
+    <div class="visualizer">
+        <div class="pulse-wrap">
+            <div class="pulse" id="pulse"></div>
+        </div>
+        <div class="vis-info">
+            <span class="flux-val" id="fluxVal">—</span>
+            <span class="onset-count">Onsets detectados: <span id="onsetCount">0</span></span>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        Estado: <span id="status">Selecciona un modo y carga una fuente</span>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
