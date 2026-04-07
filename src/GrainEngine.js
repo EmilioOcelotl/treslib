@@ -173,13 +173,11 @@ export class GrainEngine {
 
           const now = this.audioCtx.currentTime;
           
-          // Calcular densidad basada en rate y overlaps
-          const rate = this.interpolateParam("rate", now);
+          // Densidad controlada solo por overlaps y windowSize (rate solo afecta pitch, como en Warp1)
           const overlaps = this.interpolateParam("overlaps", now);
           const windowSize = this.interpolateParam("windowSize", now);
-          
-          // Intervalo entre granos basado en rate y overlaps
-          const grainInterval = windowSize / (rate * overlaps);
+
+          const grainInterval = windowSize / overlaps;
           
           // Programar granos en el look-ahead window
           while (this.lastGrainTime < now + this.lookAhead) {
