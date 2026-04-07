@@ -79,12 +79,12 @@ Gestor de texturas generativas que conecta Hydra (síntesis visual en WebGL) con
 Ejemplo: 
 
 ```
-import HydraTextureManager from 'treslib';
+import { HydraTextureManager } from 'treslib';
 
 // Configurar canvas para Hydra
 const hydraCanvas = document.createElement('canvas');
-hydraCanvas.width = 512;
-hydraCanvas.height = 512;
+hydraCanvas.width = 800;
+hydraCanvas.height = 600;
 
 // Crear gestor de texturas
 const textureManager = new HydraTextureManager(hydraCanvas, {
@@ -94,16 +94,17 @@ const textureManager = new HydraTextureManager(hydraCanvas, {
 
 // Usar en Three.js
 const geometry = new THREE.PlaneGeometry(10, 10);
-const material = new THREE.MeshBasicMaterial({ 
-  map: textureManager.getThreeJSTexture() 
+const material = new THREE.MeshBasicMaterial({
+  map: textureManager.getThreeJSTexture()
 });
 const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
 
 // Cambiar texturas dinámicamente
-textureManager.setTexture(0); // Textura azul-cian oscilante
-textureManager.setTexture(1); // Textura verde-púrpura
-textureManager.setTexture(2); // Textura naranja-roja
+textureManager.setTexture(0); // OSC azul-cian
+textureManager.setTexture(1); // OSC verde-púrpura
+textureManager.setTexture(2); // OSC naranja-roja
+textureManager.setTexture(3); // Voronoi rojo-azul
 
 // Añadir nueva textura personalizada
 textureManager.addTexture(() => {
@@ -129,15 +130,21 @@ Gestor de mallas deformables que transforma texturas Hydra en geometrías 3D ani
 Ejemplo: 
 
 ```
-import ClothMeshManager from 'treslib';
+import { ClothMeshManager } from 'treslib';
 
 // Crear gestor de tela con texturas Hydra
 const clothManager = new ClothMeshManager(hydraTextureManager, {
-  width: 6,           // Ancho de la malla
-  height: 3,          // Alto de la malla  
+  width: 4,           // Ancho de la malla
+  height: 2,          // Alto de la malla
   segments: 150,      // Resolución de la geometría
-  colorInfluence: 0.3, // Cuánto afectan los colores a la deformación
-  smoothingRadius: 0.2 // Suavizado del análisis de imagen
+  colorInfluence: 0.25, // Cuánto afectan los colores a la deformación
+  smoothingRadius: 1,   // Radio de suavizado en píxeles (entero; 0 = sin suavizado)
+  waveParams: {
+    amplitude1: 0.3,
+    frequency1: 4.0,
+    amplitude2: 0.2,
+    frequency2: 3.5,
+  }
 });
 
 // Obtener la malla para Three.js
@@ -148,19 +155,20 @@ scene.add(clothMesh);
 clothManager.setMaterial('standard'); // Material con textura Hydra
 clothManager.setMaterial('sobel');    // Material con efecto de bordes
 
-// Controlar parámetros de deformación
+// Controlar parámetros de deformación en tiempo real
 clothManager.setDeformationParams({
-  colorInfluence: 0.5,    // Más influencia del color
-  smoothingRadius: 0.3,   // Más suavizado
+  colorInfluence: 0.5,
   waveParams: {
-    amplitude1: 0.5,      // Ondas más intensas
-    frequency1: 3.0       // Frecuencia diferente
+    amplitude1: 0.5,  // Onda 1 más intensa
+    frequency1: 3.0,
+    amplitude2: 0.3,  // Onda 2 más intensa
+    frequency2: 6.0,
   }
 });
 
 // Actualizar en el bucle de animación
 function animate() {
-  clothManager.update(0.016); // Pasar delta time
+  clothManager.update(0.01); // Avanzar tiempo interno
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
@@ -173,48 +181,41 @@ Combinación para crear visuales 3D generativos donde las texturas animadas defo
 Ejemplo: 
 
 ```
-import HydraTextureManager from 'treslib';
-import ClothMeshManager from 'treslib';
+import { HydraTextureManager, ClothMeshManager } from 'treslib';
 
 // 1. Configurar canvas para Hydra
 const hydraCanvas = document.createElement('canvas');
-hydraCanvas.width = 512;
-hydraCanvas.height = 512;
-document.body.appendChild(hydraCanvas);
+hydraCanvas.width = 800;
+hydraCanvas.height = 600;
 
 // 2. Crear gestor de texturas Hydra
-const textureManager = new HydraTextureManager(hydraCanvas, {
-  maxTextures: 6,
-  textureNames: ['VORTEX', 'WAVES', 'GEOMETRY', 'NOISE', 'OSCILLATOR', 'VORONOI']
-});
+const textureManager = new HydraTextureManager(hydraCanvas);
 
 // 3. Crear gestor de malla deformable
 const clothManager = new ClothMeshManager(textureManager, {
-  width: 8,
-  height: 4,
-  segments: 200,
-  colorInfluence: 0.4,
-  smoothingRadius: 0.25
+  width: 4,
+  height: 2,
+  segments: 150,
+  colorInfluence: 0.25,
+  waveParams: {
+    amplitude1: 0.3,
+    frequency1: 4.0,
+    amplitude2: 0.2,
+    frequency2: 3.5,
+  }
 });
 
 // 4. Añadir a escena Three.js
-const clothMesh = clothManager.getMesh();
-scene.add(clothMesh);
+scene.add(clothManager.getMesh());
 
-// 5. Control conjunto
-let textureIndex = 0;
-setInterval(() => {
-  // Cambiar textura cada 3 segundos
-  textureManager.setTexture(textureIndex);
-  textureIndex = (textureIndex + 1) % textureManager.getTextureCount();
-  
-  console.log(`Textura activa: ${textureManager.getTextureName()}`);
-}, 3000);
+// 5. Cambiar textura activa (0–3)
+textureManager.setTexture(2);
+console.log(textureManager.getTextureName()); // 'OSC_ORANGE_RED'
 
 // 6. Bucle de animación
 function animate() {
-  textureManager.update();        // Actualizar textura Hydra
-  clothManager.update(0.016);     // Actualizar deformaciones 3D
+  textureManager.update();     // Actualizar textura Hydra
+  clothManager.update(0.01);   // Avanzar deformaciones 3D
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
@@ -227,7 +228,7 @@ Compresor de imágenes especializado para capturar y comprimir frames de visuale
 Ejemplo: 
 
 ```
-import SnapshotCompressor from 'treslib';
+import { SnapshotCompressor } from 'treslib';
 
 // Crear compresor con resolución personalizada
 const compressor = new SnapshotCompressor(64, 64); // 64x64 píxeles
