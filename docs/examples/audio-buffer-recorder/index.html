@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudioBufferRecorder — treslib</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f0f0f;
+            color: #d4d4d4;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            line-height: 1.6;
+        }
+
+        a { color: #7ec8e3; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 32px; }
+        header p { color: #888; font-size: 0.9em; margin: 4px 0 0; }
+        .back { font-size: 0.85em; color: #888; margin-bottom: 12px; display: block; }
+
+        h1 { font-size: 1.4em; margin: 0; color: #fff; }
+        h2 {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #555;
+            margin: 28px 0 12px;
+            border-bottom: 1px solid #1e1e1e;
+            padding-bottom: 6px;
+        }
+
+        .description {
+            font-size: 0.9em;
+            color: #aaa;
+            border-left: 2px solid #333;
+            padding-left: 14px;
+            margin-bottom: 28px;
+        }
+
+        .actions { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+
+        button {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 0.85em;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover { border-color: #7ec8e3; color: #7ec8e3; }
+        button:disabled { opacity: 0.35; cursor: default; }
+        button.active { border-color: #e37e7e; color: #e37e7e; }
+        button.playing { border-color: #7ec8e3; color: #7ec8e3; }
+
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+        .control-row {
+            display: grid;
+            grid-template-columns: 160px 1fr 52px;
+            align-items: center;
+            gap: 12px;
+        }
+        .control-row label { font-size: 0.85em; color: #aaa; }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 3px;
+            background: #333;
+            outline: none;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #7ec8e3;
+            cursor: pointer;
+        }
+        .val { font-size: 0.8em; color: #7ec8e3; text-align: right; }
+
+        /* Recording indicator */
+        .rec-panel {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            font-size: 0.85em;
+        }
+        .rec-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #333;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .rec-dot.active {
+            background: #e37e7e;
+            box-shadow: 0 0 6px #e37e7e88;
+            animation: blink 1s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .rec-info { color: #666; }
+        .rec-info span { color: #aaa; }
+
+        /* Buffer progress */
+        .buf-progress {
+            flex: 1;
+            height: 3px;
+            background: #222;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .buf-fill {
+            height: 100%;
+            width: 0%;
+            background: #e37e7e;
+            border-radius: 2px;
+            transition: width 0.5s linear;
+        }
+        .buf-fill.full { background: #7ec8e3; }
+
+        /* Grain section */
+        .grain-section { opacity: 0.35; pointer-events: none; transition: opacity 0.3s; }
+        .grain-section.enabled { opacity: 1; pointer-events: auto; }
+
+        .status-bar {
+            font-size: 0.8em;
+            color: #666;
+            border-top: 1px solid #222;
+            padding-top: 14px;
+        }
+        .status-bar span { color: #aaa; }
+    </style>
+</head>
+<body>
+    <a class="back" href="../../index.html">← treslib docs</a>
+
+    <header>
+        <h1>AudioBufferRecorder</h1>
+        <p>Grabador de audio en búfer circular</p>
+    </header>
+
+    <p class="description">
+        Graba continuamente desde el micrófono en un búfer circular.
+        Al capturar, el audio reciente queda disponible como <code>AudioBuffer</code>
+        para usar directamente con <code>GrainEngine</code>.
+    </p>
+
+    <h2>Grabación</h2>
+    <div class="controls">
+        <div class="control-row">
+            <label>Duración del búfer</label>
+            <input type="range" id="bufferDuration" min="1" max="20" step="1" value="8">
+            <span id="bufferDurationVal" class="val">8s</span>
+        </div>
+    </div>
+    <div class="actions">
+        <button id="recBtn">Iniciar grabación</button>
+    </div>
+
+    <div class="rec-panel">
+        <div class="rec-dot" id="recDot"></div>
+        <div class="rec-info">Estado: <span id="recStatus">inactivo</span></div>
+        <div class="buf-progress">
+            <div class="buf-fill" id="bufFill"></div>
+        </div>
+        <div class="rec-info"><span id="bufTime">0s</span></div>
+    </div>
+
+    <div class="grain-section" id="grainSection">
+        <h2>Síntesis granular</h2>
+        <div class="actions">
+            <button id="captureBtn" disabled>Capturar y sintetizar</button>
+            <button id="engineBtn" disabled>Iniciar engine</button>
+        </div>
+
+        <div class="controls">
+            <div class="control-row">
+                <label>Pointer</label>
+                <input type="range" id="pointer" min="0" max="1" step="0.01" value="0">
+                <span id="pointerVal" class="val">0.00</span>
+            </div>
+            <div class="control-row">
+                <label>Rate (pitch)</label>
+                <input type="range" id="rate" min="0.1" max="4" step="0.05" value="1">
+                <span id="rateVal" class="val">1.00</span>
+            </div>
+            <div class="control-row">
+                <label>Overlaps</label>
+                <input type="range" id="overlaps" min="1" max="16" step="1" value="6">
+                <span id="overlapsVal" class="val">6</span>
+            </div>
+            <div class="control-row">
+                <label>Window size</label>
+                <input type="range" id="windowSize" min="0.01" max="0.5" step="0.01" value="0.1">
+                <span id="windowSizeVal" class="val">0.10</span>
+            </div>
+            <div class="control-row">
+                <label>Random position</label>
+                <input type="range" id="randomPosition" min="0" max="1" step="0.01" value="0">
+                <span id="randomPositionVal" class="val">0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        Estado: <span id="status">Inicia la grabación para comenzar</span>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
