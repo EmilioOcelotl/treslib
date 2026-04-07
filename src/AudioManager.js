@@ -234,10 +234,7 @@ class AudioManager {
     lowpass.connect(ambientGain);
     ambientGain.connect(this.masterGain);
 
-    // connect panner between masterGain and master compressor for stereo motion
-    this.masterGain.disconnect(); // re-route to include panner
-    this.masterGain.connect(this.masterPanner);
-    // (masterPanner already wired in initAudioContext)
+    // masterGain → compressor → masterPanner ya está cableado en initAudioContext()
 
     // start LFOs and panner
     lfo.start(now);
