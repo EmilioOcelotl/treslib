@@ -1,16 +1,18 @@
 export class AudioBufferRecorder {
-    constructor(audioContext, micSource, bufferDuration = 5) {
+    constructor(audioContext, micSource, bufferDuration = 5, connectToOutput = false) {
         this.audioContext = audioContext;
         this.micSource = micSource;
         this.bufferDuration = bufferDuration;
         this.scriptProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
         this.recording = false;
         this.currentPosition = 0;
-
+        this.bufferSize = 0;
         this.buffer = null;
 
         this.micSource.connect(this.scriptProcessor);
-        this.scriptProcessor.connect(this.audioContext.destination);
+        if (connectToOutput) {
+            this.scriptProcessor.connect(this.audioContext.destination);
+        }
         this.scriptProcessor.onaudioprocess = this._processAudio.bind(this);
     }
 
@@ -25,6 +27,7 @@ export class AudioBufferRecorder {
         this.recording = false;
     }
 
+    // Cambia la duración del buffer. Tiene efecto en el próximo startRecording().
     setBufferDuration(newDuration) {
         this.bufferDuration = newDuration;
     }
@@ -36,12 +39,8 @@ export class AudioBufferRecorder {
         const outputData = this.buffer.getChannelData(0);
 
         for (let i = 0; i < inputData.length; i++) {
-            if (this.currentPosition < this.bufferSize) {
-                outputData[this.currentPosition++] = inputData[i];
-            } else {
-                // Si el buffer se llena, sobrescribimos
-                this.currentPosition = 0;
-            }
+            outputData[this.currentPosition] = inputData[i];
+            this.currentPosition = (this.currentPosition + 1) % this.bufferSize;
         }
     }
 
@@ -50,6 +49,7 @@ export class AudioBufferRecorder {
     }
 
     clearBuffer() {
+        if (!this.bufferSize) return;
         this.currentPosition = 0;
         this.buffer = this.audioContext.createBuffer(1, this.bufferSize, this.audioContext.sampleRate);
     }

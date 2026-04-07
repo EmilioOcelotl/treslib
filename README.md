@@ -240,7 +240,7 @@ console.log('Snapshot comprimido:', compressedHex); // Ej: "A3F2C45B..."
 // Extraer paleta de colores estilo RISO
 const risoPalette = compressor.extractRisoPalette(hydraCanvas);
 console.log('Paleta RISO:', risoPalette);
-/// Ej: [{r: 255, g: 0, b: 64}, {r: 0, g: 192, b: 255}, ...]
+//// Ej: [{r: 255, g: 0, b: 64}, {r: 0, g: 192, b: 255}, ...]
 
 // Descomprimir para visualización
 const compressedBytes = compressor.hexToBytes(compressedHex);
@@ -265,7 +265,7 @@ import { OnsetDetector } from 'treslib';
 
 const audioCtx = new AudioContext();
 
-// Modo 1: buffer de audio (reproduce y detecta)
+/// Modo 1: buffer de audio (reproduce y detecta)
 const detector = new OnsetDetector(audioCtx, audioBuffer, 0.015);
 
 detector.start((flux) => {
@@ -273,7 +273,7 @@ detector.start((flux) => {
   granularEngine.setPointer(Math.random());
 });
 
-// Modo 2: micrófono (solo detección, sin reproducción)
+/// Modo 2: micrófono (solo detección, sin reproducción)
 navigator.mediaDevices.getUserMedia({ audio: true })
   .then(stream => {
     const micSource = audioCtx.createMediaStreamSource(stream);
@@ -293,46 +293,30 @@ detector.stop();
 Grabador de audio en búfer circular que captura entrada de micrófono en tiempo real y mantiene los últimos segundos de audio disponibles para procesamiento inmediato. Ideal para efectos granulares, análisis en tiempo real y captura de audio reactiva.
 
 ```
-import { AudioBufferRecorder } from 'treslib';
+import { AudioBufferRecorder, GrainEngine } from 'treslib';
 
-// Configurar desde micrófono
-navigator.mediaDevices.getUserMedia({ audio: true })
-  .then(stream => {
-    const audioCtx = new AudioContext();
-    const micSource = audioCtx.createMediaStreamSource(stream);
-    
-    // Crear grabador con búfer de 8 segundos
-    const recorder = new AudioBufferRecorder(audioCtx, micSource, 8);
-    
-    // Iniciar grabación continua
-    recorder.startRecording();
-    
-    // Usar el búfer para análisis o procesamiento
-    setInterval(() => {
-      const currentBuffer = recorder.getRecordedBuffer();
-      
-      // Análisis de audio en tiempo real
-      const onsetDetector = new OnsetDetector(audioCtx, currentBuffer);
-      onsetDetector.start((flux) => {
-        console.log('Onset detectado en audio en vivo:', flux);
-      });
-      
-      // O para síntesis granular
-      const granular = new GrainEngine(audioCtx, currentBuffer);
-      granular.start();
-      
-    }, 1000); // Verificar cada segundo
-    
-    // En una interacción, capturar el audio reciente
-    document.addEventListener('click', () => {
-      const recentAudio = recorder.getRecordedBuffer();
-      // Procesar los últimos 8 segundos de audio
-      saveBufferForPlayback(recentAudio);
-    });
-    
-    // Cambiar duración dinámicamente
-    recorder.setBufferDuration(15); // Ahora guarda 15 segundos
-  });
+const audioCtx = new AudioContext();
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+const micSource = audioCtx.createMediaStreamSource(stream);
+
+// Crear grabador con búfer circular de 8 segundos (sin escuchar el micrófono)
+const recorder = new AudioBufferRecorder(audioCtx, micSource, 8);
+recorder.startRecording();
+
+// Capturar el audio reciente ante una interacción y usarlo con GrainEngine
+document.addEventListener('click', () => {
+  const recentAudio = recorder.getRecordedBuffer();
+  const granular = new GrainEngine(audioCtx, recentAudio);
+  granular.connect(audioCtx.destination);
+  granular.start();
+});
+
+// Detener grabación
+recorder.stopRecording();
+
+// Cambiar duración del búfer (tiene efecto en el próximo startRecording)
+recorder.setBufferDuration(15);
+recorder.startRecording();
 ```
 
 ## FreeSoundSearcher
