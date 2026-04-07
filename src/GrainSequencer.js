@@ -17,6 +17,7 @@ export class GrainSequencer {
       this.currentStep = 0;
       this.lastStepTime = 0;
       this.schedulerId = null;
+      this.lookAhead = 0.1;
 
       // Colección de secuencias
       this.sequences = []; 
@@ -79,7 +80,8 @@ export class GrainSequencer {
 
   addRateSequence(values, grainEngineInstance, mode = "absolute") {
       return this.addSequence("rate", values, grainEngineInstance, mode, {
-          min: 0.1 // Evitar rate 0 o negativo
+          clamp: true,
+          min: 0.1
       });
   }
 
@@ -125,16 +127,16 @@ export class GrainSequencer {
 
           const now = this.audioCtx.currentTime;
 
-          while (this.lastStepTime < now) {
+          while (this.lastStepTime < now + this.lookAhead) {
               this.triggerStep(this.lastStepTime);
               this.lastStepTime += this.stepDuration;
               this.currentStep++;
           }
 
-          this.schedulerId = requestAnimationFrame(scheduleLoop);
+          this.schedulerId = setTimeout(scheduleLoop, 25);
       };
 
-      this.schedulerId = requestAnimationFrame(scheduleLoop);
+      this.schedulerId = setTimeout(scheduleLoop, 25);
   }
 
   // -----------------------------------------
@@ -143,7 +145,7 @@ export class GrainSequencer {
   stop() {
       this.isRunning = false;
       if (this.schedulerId) {
-          cancelAnimationFrame(this.schedulerId);
+          clearTimeout(this.schedulerId);
           this.schedulerId = null;
       }
   }

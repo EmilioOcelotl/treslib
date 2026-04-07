@@ -4,7 +4,7 @@ treslib es una librería escrita en JavaScript para creación audiovisual genera
 
 ## GrainEngine
 
-Motor de síntesis granular que gestiona múltiples granos de audio simultáneamente. Optimizado para manejar densidades altas de granos con control preciso sobre posición, pitch, amplitud y efectos estocásticos. Implementa un sistema de pooling de recursos para eficiencia y soporta interpolación suave de parámetros.
+Motor de síntesis granular inspirado en Warp1 de SuperCollider. Gestiona múltiples granos de audio simultáneamente con control independiente de densidad y pitch: `overlaps` determina cuántos granos suenan en paralelo, mientras que `rate` controla exclusivamente la velocidad de reproducción de cada grano. Implementa scheduling de audio con look-ahead sobre el reloj del hardware (`AudioContext`), pooling de nodos de ganancia para eficiencia, e interpolación suave de parámetros.
 
 Ejemplo de uso: 
 
@@ -27,7 +27,7 @@ engine.connect(audioCtx.destination);
 // Control en tiempo real
 engine.start();
 engine.setPointer(0.5); // Navegar por el buffer
-engine.setRate(0.8); // Reducir densidad
+engine.setRate(0.8); // Bajar pitch de los granos
 engine.setParamAtTime("randomPitch", 0.15); // Añadir variación tonal
 ```
 
