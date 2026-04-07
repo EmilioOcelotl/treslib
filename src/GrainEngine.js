@@ -187,16 +187,16 @@ export class GrainEngine {
               this.lastGrainTime += grainInterval;
           }
 
-          this.schedulerId = requestAnimationFrame(scheduleLoop);
+          this.schedulerId = setTimeout(scheduleLoop, 25);
       };
 
-      this.schedulerId = requestAnimationFrame(scheduleLoop);
+      this.schedulerId = setTimeout(scheduleLoop, 25);
   }
 
   stop() {
       this.isRunning = false;
       if (this.schedulerId) {
-          cancelAnimationFrame(this.schedulerId);
+          clearTimeout(this.schedulerId);
           this.schedulerId = null;
       }
       
