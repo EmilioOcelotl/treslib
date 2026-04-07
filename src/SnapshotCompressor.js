@@ -13,7 +13,7 @@ export default class SnapshotCompressor {
 
     captureHydraFrame(hydraCanvas) {
         try {
-            const imageData = this.prepareImage(hydraCanvas, hydraCanvas.width, hydraCanvas.height);
+            const imageData = this._prepareImage(hydraCanvas, hydraCanvas.width, hydraCanvas.height);
             const grayscale = this.convertToGrayscale(imageData);
             const dithered = this.applyDithering(grayscale);
             const compressed = this.compress2bpp(dithered);
@@ -24,27 +24,22 @@ export default class SnapshotCompressor {
         }
     }
 
-    // 👇 NUEVO MÉTODO PARA EXTRAER PALETA RISO
     extractRisoPalette(hydraCanvas) {
         try {
-            const imageData = this.prepareImage(hydraCanvas, hydraCanvas.width, hydraCanvas.height);
+            const imageData = this._prepareImage(hydraCanvas, hydraCanvas.width, hydraCanvas.height);
             const data = imageData.data;
             const colorMap = {};
-            
-            // Muestrear colores dominantes
+
             for (let i = 0; i < data.length; i += 16) {
                 const r = data[i];
                 const g = data[i + 1];
                 const b = data[i + 2];
-                
-                // Cuantizar a paleta reducida para agrupar similares
+
                 const quantized = this.quantizeColor(r, g, b);
                 const key = `${quantized.r},${quantized.g},${quantized.b}`;
-                
                 colorMap[key] = (colorMap[key] || 0) + 1;
             }
-            
-            // Ordenar por frecuencia y tomar los 4 más comunes
+
             const dominantColors = Object.entries(colorMap)
                 .sort(([,a], [,b]) => b - a)
                 .slice(0, 4)
@@ -52,7 +47,7 @@ export default class SnapshotCompressor {
                     const [r, g, b] = color.split(',').map(Number);
                     return { r, g, b };
                 });
-            
+
             return dominantColors;
         } catch (error) {
             console.error('Error extrayendo paleta RISO:', error);
@@ -61,7 +56,6 @@ export default class SnapshotCompressor {
     }
 
     quantizeColor(r, g, b) {
-        // Reducir a 4 niveles por canal (para riso)
         return {
             r: Math.floor(r / 64) * 64,
             g: Math.floor(g / 64) * 64,
@@ -69,65 +63,86 @@ export default class SnapshotCompressor {
         };
     }
 
-    prepareImage(canvas, width, height) {
+    // Renderiza un hex comprimido directamente en un canvas.
+    // El canvas debe tener dimensiones targetWidth × targetHeight.
+    // rotation: ángulo en grados (0, 90, 180, 270).
+    renderToCanvas(hex, canvas, rotation = 0) {
+        const bytes = this.hexToBytes(hex);
+        const pixels = this.decompress2bpp(bytes);
+        const imageData = this.ditheredToImageData(pixels);
+
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        if (rotation === 0) {
+            ctx.putImageData(imageData, 0, 0);
+            return;
+        }
+
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = this.targetWidth;
+        tempCanvas.height = this.targetHeight;
+        tempCanvas.getContext('2d').putImageData(imageData, 0, 0);
+
+        const rad = (rotation * Math.PI) / 180;
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(rad);
+        ctx.drawImage(tempCanvas, -this.targetWidth / 2, -this.targetHeight / 2);
+        ctx.restore();
+    }
+
+    // --- Métodos internos ---
+
+    _prepareImage(canvas, width, height) {
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d');
         tempCanvas.width = width;
         tempCanvas.height = height;
-
         tempCtx.drawImage(canvas, 0, 0, width, height);
-        
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = this.targetWidth;
-        canvas.height = this.targetHeight;
-        
+
+        const scaledCanvas = document.createElement('canvas');
+        const ctx = scaledCanvas.getContext('2d');
+        scaledCanvas.width = this.targetWidth;
+        scaledCanvas.height = this.targetHeight;
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(tempCanvas, 0, 0, this.targetWidth, this.targetHeight);
-        
+
         return ctx.getImageData(0, 0, this.targetWidth, this.targetHeight);
     }
+
+    // --- Pipeline de compresión ---
 
     convertToGrayscale(imageData) {
         const data = imageData.data;
         const grayData = new Uint8ClampedArray(this.targetWidth * this.targetHeight);
-        
         for (let i = 0, j = 0; i < data.length; i += 4, j++) {
             grayData[j] = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
         }
-        
         return grayData;
     }
 
     applyDithering(grayscaleData) {
         const output = new Uint8Array(this.targetWidth * this.targetHeight);
-        
         for (let y = 0; y < this.targetHeight; y++) {
             for (let x = 0; x < this.targetWidth; x++) {
                 const index = y * this.targetWidth + x;
                 const pixel = grayscaleData[index];
                 const threshold = this.ditherMatrix[y % 4][x % 4];
                 const value = pixel + threshold - 32;
-                
-                if (value < 64) {
-                    output[index] = 0;
-                } else if (value < 128) {
-                    output[index] = 1;
-                } else if (value < 192) {
-                    output[index] = 2;
-                } else {
-                    output[index] = 3;
-                }
+
+                if (value < 64)       output[index] = 0;
+                else if (value < 128) output[index] = 1;
+                else if (value < 192) output[index] = 2;
+                else                  output[index] = 3;
             }
         }
-        
         return output;
     }
 
     compress2bpp(imageArray) {
         const compressed = [];
-        
         for (let y = 0; y < this.targetHeight; y++) {
             for (let x = 0; x < this.targetWidth; x += 4) {
                 let byteVal = 0;
@@ -142,6 +157,8 @@ export default class SnapshotCompressor {
         }
         return compressed;
     }
+
+    // --- Pipeline de descompresión ---
 
     bytesToHex(bytes) {
         return bytes.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
@@ -158,7 +175,6 @@ export default class SnapshotCompressor {
     decompress2bpp(compressedBytes) {
         const pixels = new Array(this.targetWidth * this.targetHeight);
         let pixelIndex = 0;
-
         for (let i = 0; i < compressedBytes.length; i++) {
             const byte = compressedBytes[i];
             for (let n = 0; n < 4; n++) {
@@ -179,19 +195,16 @@ export default class SnapshotCompressor {
             [170, 170, 170],
             [255, 255, 255]
         ];
-        
         const imageData = new ImageData(this.targetWidth, this.targetHeight);
         const data = imageData.data;
-        
         for (let i = 0; i < ditheredData.length; i++) {
             const color = palette[ditheredData[i]];
             const dataIndex = i * 4;
-            data[dataIndex] = color[0];
+            data[dataIndex]     = color[0];
             data[dataIndex + 1] = color[1];
             data[dataIndex + 2] = color[2];
             data[dataIndex + 3] = 255;
         }
-        
         return imageData;
     }
 }
