@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integración — treslib</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f0f0f;
+            color: #d4d4d4;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            line-height: 1.6;
+        }
+
+        a { color: #7ec8e3; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 32px; }
+        header p { color: #888; font-size: 0.9em; margin: 4px 0 0; }
+        .back { font-size: 0.85em; color: #888; margin-bottom: 12px; display: block; }
+        h1 { font-size: 1.4em; margin: 0; color: #fff; }
+
+        h2 {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #555;
+            margin: 28px 0 12px;
+            border-bottom: 1px solid #1e1e1e;
+            padding-bottom: 6px;
+        }
+
+        .description {
+            font-size: 0.9em;
+            color: #aaa;
+            border-left: 2px solid #333;
+            padding-left: 14px;
+            margin-bottom: 28px;
+        }
+        .description code { color: #7ec8e3; }
+
+        .mode-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+        .tab {
+            background: #1e1e1e;
+            color: #666;
+            border: 1px solid #333;
+            padding: 7px 18px;
+            font-family: inherit;
+            font-size: 0.85em;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .tab.active { border-color: #7ec8e3; color: #7ec8e3; }
+        .tab:disabled { opacity: 0.35; cursor: default; }
+
+        .mode-panel { display: none; margin-bottom: 16px; }
+        .mode-panel.visible { display: block; }
+
+        .load-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        input[type="file"] { color: #aaa; font-size: 0.85em; }
+
+        button {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 0.85em;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover:not(:disabled) { border-color: #7ec8e3; color: #7ec8e3; }
+        button:disabled { opacity: 0.35; cursor: default; }
+        button.active { border-color: #7ec8e3; color: #7ec8e3; }
+        button.rec { border-color: #e37e7e; color: #e37e7e; }
+
+        .actions { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .control-row {
+            display: grid;
+            grid-template-columns: 160px 1fr 52px;
+            align-items: center;
+            gap: 12px;
+        }
+        .control-row label { font-size: 0.85em; color: #aaa; }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 3px;
+            background: #333;
+            outline: none;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #7ec8e3;
+            cursor: pointer;
+        }
+        .val { font-size: 0.8em; color: #7ec8e3; text-align: right; }
+
+        /* Monitor de onsets */
+        .onset-monitor {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 4px;
+            margin-bottom: 24px;
+        }
+        .pulse {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #222;
+            border: 1px solid #333;
+            flex-shrink: 0;
+            transition: transform 0.05s ease-out, background 0.05s ease-out;
+        }
+        .pulse.triggered { background: #7ec8e3; border-color: #7ec8e3; }
+        .onset-info { font-size: 0.82em; color: #555; flex: 1; }
+        .onset-info span { color: #aaa; }
+        .step-display { font-size: 0.82em; color: #555; }
+        .step-display span { color: #7ec8e3; font-size: 1.2em; }
+
+        /* Grids de secuencia */
+        .seq-block { margin-bottom: 20px; }
+        .seq-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .seq-label small { color: #444; }
+        .seq-grid { display: flex; gap: 4px; flex-wrap: wrap; }
+        .step {
+            width: 44px;
+            height: 44px;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75em;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.08s, background 0.08s;
+        }
+        .step:hover { border-color: #555; }
+        .step.active { border-color: #7ec8e3; background: #162830; color: #7ec8e3; }
+
+        /* Botón principal */
+        .main-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            margin-bottom: 24px;
+            letter-spacing: 0.05em;
+        }
+        .main-btn.running { border-color: #7ec8e3; color: #7ec8e3; }
+
+        .status-bar {
+            font-size: 0.8em;
+            color: #666;
+            border-top: 1px solid #222;
+            padding-top: 14px;
+        }
+        .status-bar span { color: #aaa; }
+    </style>
+</head>
+<body>
+    <a class="back" href="../../index.html">← treslib docs</a>
+
+    <header>
+        <h1>Integración</h1>
+        <p>AudioBufferRecorder · GrainEngine · GrainSequencer · OnsetDetector</p>
+    </header>
+
+    <p class="description">
+        Una muestra de audio alimenta a <code>GrainEngine</code>.
+        El micrófono detecta onsets con <code>OnsetDetector</code> —
+        cada ataque sonoro avanza un step del <code>GrainSequencer</code>,
+        que cambia los parámetros del granulador en tiempo real.
+    </p>
+
+    <h2>Fuente de audio</h2>
+    <div class="mode-tabs">
+        <button class="tab active" data-mode="file">Archivo</button>
+        <button class="tab" data-mode="mic">Micrófono</button>
+    </div>
+
+    <div class="mode-panel visible" id="panel-file">
+        <div class="load-row">
+            <input type="file" id="audioFile" accept="audio/*">
+            <button id="loadBtn">Cargar</button>
+        </div>
+    </div>
+
+    <div class="mode-panel" id="panel-mic">
+        <div class="actions">
+            <button id="recBtn">Grabar</button>
+            <button id="captureBtn" disabled>Capturar muestra</button>
+        </div>
+    </div>
+
+    <h2>Detección de onsets <small style="color:#444;font-size:0.9em">— micrófono</small></h2>
+    <div class="controls">
+        <div class="control-row">
+            <label>Threshold</label>
+            <input type="range" id="threshold" min="0.001" max="0.1" step="0.001" value="0.015">
+            <span id="thresholdVal" class="val">0.015</span>
+        </div>
+    </div>
+    <div class="onset-monitor">
+        <div class="pulse" id="pulse"></div>
+        <div class="onset-info">Onsets: <span id="onsetCount">0</span></div>
+        <div class="step-display">Step: <span id="currentStep">—</span></div>
+    </div>
+
+    <h2>Secuencias <small style="color:#444;font-size:0.9em">— click para editar</small></h2>
+    <div class="seq-block">
+        <div class="seq-label">
+            <span>pointer</span><small>click = +0.25</small>
+        </div>
+        <div class="seq-grid" id="pointerSeq"></div>
+    </div>
+    <div class="seq-block">
+        <div class="seq-label">
+            <span>rate (pitch)</span><small>click = +0.25</small>
+        </div>
+        <div class="seq-grid" id="rateSeq"></div>
+    </div>
+
+    <h2>Motor granular</h2>
+    <div class="controls">
+        <div class="control-row">
+            <label>Overlaps</label>
+            <input type="range" id="overlaps" min="1" max="16" step="1" value="6">
+            <span id="overlapsVal" class="val">6</span>
+        </div>
+        <div class="control-row">
+            <label>Window size</label>
+            <input type="range" id="windowSize" min="0.01" max="0.5" step="0.01" value="0.1">
+            <span id="windowSizeVal" class="val">0.10</span>
+        </div>
+        <div class="control-row">
+            <label>Random position</label>
+            <input type="range" id="randomPosition" min="0" max="1" step="0.01" value="0.05">
+            <span id="randomPositionVal" class="val">0.05</span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button id="playbackBtn" disabled>Escuchar muestra</button>
+    </div>
+
+    <button class="main-btn" id="mainBtn" disabled>Iniciar</button>
+
+    <div class="status-bar">
+        Estado: <span id="status">Carga una fuente de audio</span>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
