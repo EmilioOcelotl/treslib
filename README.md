@@ -33,7 +33,7 @@ engine.setParamAtTime("randomPitch", 0.15); // Añadir variación tonal
 
 ## GrainSequencer 
 
-Secuenciador de parámetros especializado para controlar múltiples instancias de GrainEngine en tiempo. Permite crear patrones complejos de parámetros granulares como posición, densidad, amplitud y efectos, sincronizados con un tempo musical. Soporta modos absoluto y relativo para cambios parameteriales.
+Secuenciador de parámetros especializado para controlar múltiples instancias de GrainEngine en tiempo. Permite crear patrones de parámetros granulares como posición, pitch y amplitud, sincronizados con un tempo musical. Soporta modos absoluto y relativo para cambios paramétricos.
 
 Ejemplo: 
 
@@ -62,7 +62,7 @@ sequencer.addAmpSequence(
   granular
 );
 
-// Opcional: callback para visualización
+/// Opcional: callback para visualización
 sequencer.onStepChange = (step, values) => {
   console.log(`Step ${step}:`, values);
 };
