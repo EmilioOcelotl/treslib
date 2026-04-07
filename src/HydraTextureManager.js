@@ -8,33 +8,33 @@ export default class HydraTextureManager {
         this.currentTextureIndex = 0;
         this.hydra = null;
         this.threeTexture = null;
-        this.isHydraReady = false; // 👈 Nueva bandera para controlar estado de Hydra
-        
+        this.isHydraReady = false;
+
         // Configuración escalable
         this.maxTextures = options.maxTextures || 10;
         this.textureNames = options.textureNames || [];
-        
+
         this.initHydra();
         this.initTextures();
     }
 
     initHydra() {
-        this.hydra = new Hydra({ 
-            canvas: this.canvas, 
-            autoLoop: true, 
-            detectAudio: false 
+        this.hydra = new Hydra({
+            canvas: this.canvas,
+            autoLoop: true,
+            detectAudio: false
         });
-        
+
         this.threeTexture = new THREE.CanvasTexture(this.canvas);
         this.threeTexture.needsUpdate = true;
-        
-        // 👈 Esperar un frame para asegurar que Hydra esté listo
+
+        // Esperar un frame para asegurar que Hydra esté listo
         setTimeout(() => {
             this.isHydraReady = true;
             // Renderizar textura por defecto para evitar canvas negro
             if (this.textures.length > 0) {
                 this.textures[0]();
-                console.log('✅ Hydra inicializado y listo para capturas');
+                console.log('Hydra inicializado y listo para capturas');
             }
         }, 100);
     }
@@ -85,7 +85,7 @@ export default class HydraTextureManager {
         // Nombres escalables para las texturas
         this.textureNames = this.textureNames.length > 0 ? this.textureNames : [
             "OSC_BLUE_CYAN",
-            "OSC_GREEN_PURPLE", 
+            "OSC_GREEN_PURPLE",
             "OSC_ORANGE_RED",
             "VORONOI_RED_BLUE"
         ];
@@ -96,13 +96,6 @@ export default class HydraTextureManager {
             this.currentTextureIndex = index;
             this.textures[index]();
             this.threeTexture.needsUpdate = true;
-            
-            // 👈 Forzar actualización después de cambiar textura
-            setTimeout(() => {
-                this.threeTexture.needsUpdate = true;
-                console.log(`🔄 Textura ${index} aplicada y actualizada`);
-            }, 50);
-            
             return true;
         }
         console.warn(`Índice de textura inválido: ${index}. Máximo permitido: ${this.textures.length - 1}`);
@@ -128,7 +121,6 @@ export default class HydraTextureManager {
         return `TEXTURE_${index}`;
     }
 
-    // 👈 Nuevo método para verificar si Hydra está listo
     isReady() {
         return this.isHydraReady;
     }
@@ -153,12 +145,11 @@ export default class HydraTextureManager {
 
     getPixelData() {
         try {
-            // 👈 Verificar que Hydra esté listo antes de capturar
             if (!this.isHydraReady) {
                 console.warn('Hydra no está listo para captura de píxeles');
                 return null;
             }
-            
+
             const canvas = document.createElement("canvas");
             canvas.width = this.canvas.width;
             canvas.height = this.canvas.height;
@@ -181,29 +172,28 @@ export default class HydraTextureManager {
     hush() {
         try {
             this.hydra.hush();
-            this.isHydraReady = false; // 👈 Marcar como no listo temporalmente
-            
-            // 👈 Reactivar Hydra después de hush para evitar canvas negro
+            this.isHydraReady = false;
+
+            // Reactivar Hydra después de hush para evitar canvas negro
             setTimeout(() => {
                 this.isHydraReady = true;
                 // Aplicar textura actual para tener contenido visible
                 if (this.textures.length > 0) {
                     this.textures[this.currentTextureIndex]();
                 }
-                console.log("🔄 Hydra reinicializado después de hush");
+                console.log('Hydra reinicializado después de hush');
             }, 150);
-            
+
             this.threeTexture.needsUpdate = true;
-            console.log("🔇 Hydra hush ejecutado");
+            console.log('Hydra hush ejecutado');
         } catch (e) {
             console.error("Error en Hydra hush:", e);
         }
     }
-    
-    // 👈 Nuevo método para forzar preparación de Hydra
+
     ensureReady() {
         if (!this.isHydraReady) {
-            console.log('🔄 Forzando preparación de Hydra...');
+            console.log('Forzando preparación de Hydra...');
             this.isHydraReady = true;
             if (this.textures.length > 0) {
                 this.textures[this.currentTextureIndex]();

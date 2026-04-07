@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydraTextureManager + ClothMeshManager — treslib</title>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://esm.sh/three@0.132.2",
+            "three/examples/jsm/controls/OrbitControls.js": "https://esm.sh/three@0.132.2/examples/jsm/controls/OrbitControls",
+            "hydra-synth": "https://esm.sh/hydra-synth"
+        }
+    }
+    </script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #d4d4d4;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            line-height: 1.6;
+        }
+
+        a { color: #7ec8e3; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 24px; }
+        header p { color: #666; font-size: 0.9em; margin: 4px 0 0; }
+        .back { font-size: 0.85em; color: #555; margin-bottom: 12px; display: block; }
+        h1 { font-size: 1.4em; margin: 0; color: #ddd; }
+
+        h2 {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #444;
+            margin: 24px 0 10px;
+            border-bottom: 1px solid #161616;
+            padding-bottom: 6px;
+        }
+
+        .init-overlay {
+            position: fixed;
+            inset: 0;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            cursor: pointer;
+            transition: opacity 0.6s ease;
+        }
+        .init-overlay.hidden { opacity: 0; pointer-events: none; }
+        .init-text {
+            font-size: 0.9em;
+            color: #444;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        /* Área principal: Three.js arriba, Hydra preview abajo */
+        .stage {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        #canvas-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border: 1px solid #1a1a1a;
+            overflow: hidden;
+        }
+        #canvas-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+
+        .hydra-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+        .hydra-preview-label {
+            font-size: 0.7em;
+            color: #333;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        #hydra-canvas {
+            width: 120px;
+            height: 90px;
+            border: 1px solid #1a1a1a;
+            display: block;
+        }
+
+        .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+
+        button {
+            background: #0d0d0d;
+            color: #666;
+            border: 1px solid #222;
+            padding: 7px 14px;
+            font-family: inherit;
+            font-size: 0.82em;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        button:hover { border-color: #444; color: #aaa; }
+        button.active { border-color: #7ec8e3; color: #7ec8e3; }
+
+        .slider-row {
+            display: grid;
+            grid-template-columns: 160px 1fr 40px;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 0.82em;
+            color: #555;
+        }
+        input[type=range] {
+            width: 100%;
+            accent-color: #7ec8e3;
+        }
+        .slider-val { color: #888; text-align: right; }
+
+        .description {
+            font-size: 0.88em;
+            color: #555;
+            border-left: 2px solid #1e1e1e;
+            padding-left: 12px;
+            margin-bottom: 24px;
+        }
+
+        .status-bar {
+            font-size: 0.78em;
+            color: #333;
+            border-top: 1px solid #161616;
+            padding-top: 14px;
+            margin-top: 24px;
+        }
+        .status-bar span { color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="init-overlay" id="initOverlay">
+        <div class="init-text">Toca para iniciar</div>
+    </div>
+
+    <a class="back" href="../../index.html">← treslib docs</a>
+
+    <header>
+        <h1>HydraTextureManager + ClothMeshManager</h1>
+        <p>Malla 3D deformable con textura generativa Hydra</p>
+    </header>
+
+    <p class="description">
+        Textura generativa de Hydra aplicada como mapa a una malla PlaneGeometry.
+        La deformación combina ondas paramétricas con la intensidad de color del canvas de Hydra.
+    </p>
+
+    <div class="stage">
+        <div id="canvas-container"></div>
+        <div class="hydra-preview">
+            <div class="hydra-preview-label">Hydra</div>
+            <canvas id="hydra-canvas" width="800" height="600"></canvas>
+        </div>
+    </div>
+
+    <h2>Texturas</h2>
+    <div class="actions" id="textureButtons">
+        <button data-tex="0" class="active">OSC azul</button>
+        <button data-tex="1">OSC verde</button>
+        <button data-tex="2">OSC naranja</button>
+        <button data-tex="3">Voronoi</button>
+    </div>
+
+    <h2>Material</h2>
+    <div class="actions" id="materialButtons">
+        <button data-mat="standard" class="active">Estándar</button>
+        <button data-mat="sobel">Sobel</button>
+    </div>
+
+    <h2>Deformación</h2>
+    <div class="slider-row">
+        <label>colorInfluence</label>
+        <input type="range" id="slColorInfluence" min="0" max="1" step="0.01" value="0.25">
+        <span class="slider-val" id="valColorInfluence">0.25</span>
+    </div>
+    <div class="slider-row">
+        <label>amplitude1</label>
+        <input type="range" id="slAmplitude1" min="0" max="1" step="0.01" value="0.3">
+        <span class="slider-val" id="valAmplitude1">0.30</span>
+    </div>
+    <div class="slider-row">
+        <label>frequency1</label>
+        <input type="range" id="slFrequency1" min="0.5" max="12" step="0.1" value="4">
+        <span class="slider-val" id="valFrequency1">4.0</span>
+    </div>
+    <div class="slider-row">
+        <label>amplitude2</label>
+        <input type="range" id="slAmplitude2" min="0" max="1" step="0.01" value="0.2">
+        <span class="slider-val" id="valAmplitude2">0.20</span>
+    </div>
+    <div class="slider-row">
+        <label>frequency2</label>
+        <input type="range" id="slFrequency2" min="0.5" max="12" step="0.1" value="3.5">
+        <span class="slider-val" id="valFrequency2">3.5</span>
+    </div>
+
+    <div class="status-bar">
+        Estado: <span id="status">Esperando interacción</span>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

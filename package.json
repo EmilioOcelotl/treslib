@@ -10,5 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "tween": "^0.9.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.132.2",
+    "hydra-synth": ">=1.0.0"
   }
 }
