@@ -12,8 +12,8 @@
  * - Peak picking con umbral adaptativo
  */
 
-class OnsetDetector {
-    constructor(audioContext, buffer, threshold = 0.01) {
+export class OnsetDetector {
+    constructor(audioContext, buffer = null, threshold = 0.01) {
         this.audioCtx = audioContext;
         this.buffer = buffer;
         this.threshold = threshold;
@@ -47,8 +47,14 @@ class OnsetDetector {
         this.minEventFrames = 3;
 
         // Para detener análisis
+        this.isRunning = false;
         this.interval = null;
         this.source = null;
+    }
+
+    // Conecta una fuente externa al analizador (ej. micrófono, MediaStreamSource)
+    connectSource(sourceNode) {
+        sourceNode.connect(this.analyser);
     }
 
     _energyToPhons(bandIndex, energy) {
@@ -128,13 +134,20 @@ class OnsetDetector {
         return 0;
     }
 
-    start(callback) {
-        this.source = this.audioCtx.createBufferSource();
-        this.source.buffer = this.buffer;
-        this.source.connect(this.analyser);
-        this.analyser.connect(this.audioCtx.destination);
+    start(callback, connectToOutput = true) {
+        if (this.isRunning) return;
+        this.isRunning = true;
 
-        this.source.start();
+        if (this.buffer) {
+            this.source = this.audioCtx.createBufferSource();
+            this.source.buffer = this.buffer;
+            this.source.connect(this.analyser);
+            this.source.start();
+        }
+
+        if (connectToOutput) {
+            this.analyser.connect(this.audioCtx.destination);
+        }
 
         this.interval = setInterval(() => {
             this.analyser.getFloatFrequencyData(this.spectrum);
@@ -150,12 +163,14 @@ class OnsetDetector {
     }
 
     stop() {
+        this.isRunning = false;
         if (this.source) {
             try { this.source.stop(); } catch (e) { }
             this.source.disconnect();
         }
-        if (this.interval) clearInterval(this.interval);
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
     }
 }
-
-export { OnsetDetector };

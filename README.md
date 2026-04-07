@@ -240,7 +240,7 @@ console.log('Snapshot comprimido:', compressedHex); // Ej: "A3F2C45B..."
 // Extraer paleta de colores estilo RISO
 const risoPalette = compressor.extractRisoPalette(hydraCanvas);
 console.log('Paleta RISO:', risoPalette);
-// Ej: [{r: 255, g: 0, b: 64}, {r: 0, g: 192, b: 255}, ...]
+/// Ej: [{r: 255, g: 0, b: 64}, {r: 0, g: 192, b: 255}, ...]
 
 // Descomprimir para visualización
 const compressedBytes = compressor.hexToBytes(compressedHex);
@@ -258,37 +258,34 @@ localStorage.setItem('lastSnapshot', compressedHex);
 ```
 ## OnsetDetector
 
-Detector de onsets (ataques sonoros) basado en el algoritmo psicoacústico de Nick Collins utilizado en MIREX. Implementa 40 bandas ERB (Equivalent Rectangular Bandwidth) y modelado de loudness espectral para una detección musicalmente relevante de transientes en señales de audio.
+Detector de onsets (ataques sonoros) basado en el algoritmo psicoacústico de Nick Collins utilizado en MIREX. Implementa 40 bandas ERB (Equivalent Rectangular Bandwidth) y modelado de loudness espectral para una detección musicalmente relevante de transientes en señales de audio. Soporta dos modos: reproducción de buffer con detección simultánea, o análisis de fuente externa (micrófono, MediaStreamSource) sin reproducción.
 
 ```
 import { OnsetDetector } from 'treslib';
 
-// Configurar detector con buffer de audio
 const audioCtx = new AudioContext();
-const onsetDetector = new OnsetDetector(audioCtx, audioBuffer, 0.015);
 
-// Iniciar detección con callback
-onsetDetector.start((flux) => {
+// Modo 1: buffer de audio (reproduce y detecta)
+const detector = new OnsetDetector(audioCtx, audioBuffer, 0.015);
+
+detector.start((flux) => {
   console.log(`Onset detectado! Intensidad: ${flux.toFixed(3)}`);
-  
-  // Visualizar el onset
-  visualizer.triggerPulse(flux);
-  
-  // Sincronizar efectos granulares
   granularEngine.setPointer(Math.random());
 });
 
-// Para procesamiento en tiempo real desde micrófono
+// Modo 2: micrófono (solo detección, sin reproducción)
 navigator.mediaDevices.getUserMedia({ audio: true })
   .then(stream => {
-    const source = audioCtx.createMediaStreamSource(stream);
-    // ... configurar análisis en tiempo real
+    const micSource = audioCtx.createMediaStreamSource(stream);
+    const detector = new OnsetDetector(audioCtx, null, 0.015);
+    detector.connectSource(micSource);
+    detector.start((flux) => {
+      console.log(`Onset en vivo: ${flux.toFixed(3)}`);
+    }, false); // false = no conectar a la salida de audio
   });
 
-// Detener cuando sea necesario
-setTimeout(() => {
-  onsetDetector.stop();
-}, 10000);
+// Detener
+detector.stop();
 ```
 
 ## AudioBufferRecorder
