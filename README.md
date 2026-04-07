@@ -257,6 +257,68 @@ document.body.appendChild(displayCanvas);
 // Guardar en localStorage
 localStorage.setItem('lastSnapshot', compressedHex);
 ```
+## SnapToGrains
+
+Puente entre `SnapshotCompressor` y `GrainEngine`. Analiza un snapshot comprimido (hex 2bpp) y mapea sus características visuales a parámetros de síntesis granular: brillo → amplitud, contraste → densidad, entropía → complejidad, distribución espacial → posición en buffer. Incluye un recorrido automático suave de `pointer` y variación aleatoria configurable por paso.
+
+```js
+import { SnapToGrains } from 'treslib';
+```
+
+Ejemplo básico — un snapshot controla el engine:
+
+```js
+import SnapshotCompressor from './src/SnapshotCompressor.js';
+import { GrainEngine }    from './src/GrainEngine.js';
+import { SnapToGrains }   from './src/SnapToGrains.js';
+
+const audioCtx   = new AudioContext();
+const compressor = new SnapshotCompressor(60, 60);
+
+const engine = new GrainEngine(audioCtx, audioBuffer, { overlaps: 4 });
+engine.connect(audioCtx.destination);
+
+const snapToGrains = new SnapToGrains(audioCtx, engine, {
+    compressor,           // activa análisis real de píxeles
+    smoothingTime: 0.3,   // segundos de transición entre parámetros
+    jitter: 0.06,         // ±6% de variación aleatoria en rate y amp por paso
+    pointerTransitionTime: 1.0,
+});
+
+// Capturar un canvas y aplicarlo al engine
+const hex = compressor.captureHydraFrame(hydraCanvas);
+snapToGrains.start();
+snapToGrains.applySnapshot(hex);
+```
+
+Ejemplo como secuenciador — un mosaico de snapshots como pasos:
+
+```js
+const snapshots = [hexA, hexB, hexC, hexD]; // hexes capturados previamente
+let step = 0;
+
+snapToGrains.start();
+
+setInterval(() => {
+    snapToGrains.applySnapshot(snapshots[step]);
+    step = (step + 1) % snapshots.length;
+}, 1000); // un paso por segundo
+```
+
+El método `applySnapshot` analiza la imagen y genera una secuencia interna de valores de `pointer` que se recorre con `requestAnimationFrame`, independiente del intervalo del secuenciador.
+
+Parámetros del constructor:
+
+| opción | default | descripción |
+|---|---|---|
+| `compressor` | `null` | instancia de `SnapshotCompressor`; activa análisis pixel a pixel |
+| `smoothingTime` | `1.0` | segundos de fade entre parámetros del engine |
+| `jitter` | `0` | fracción de variación aleatoria por paso (ej. `0.06` = ±6%) |
+| `pointerTransitionTime` | `3.0` | segundos entre puntos de la secuencia interna de pointer |
+| `transitionCurve` | `'easeInOut'` | curva de easing: `'easeInOut'`, `'linear'`, `'exponential'` |
+| `maxRandomPitch` | `0.3` | rango máximo de `randomPitch` derivado del análisis |
+| `maxRandomPosition` | `0.01` | rango máximo de `randomPosition` derivado del análisis |
+
 ## OnsetDetector
 
 Detector de onsets (ataques sonoros) basado en el algoritmo psicoacústico de Nick Collins utilizado en MIREX. Implementa 40 bandas ERB (Equivalent Rectangular Bandwidth) y modelado de loudness espectral para una detección musicalmente relevante de transientes en señales de audio. Soporta dos modos: reproducción de buffer con detección simultánea, o análisis de fuente externa (micrófono, MediaStreamSource) sin reproducción.

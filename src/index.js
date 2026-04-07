@@ -8,3 +8,4 @@ export { default as AudioManager } from './AudioManager.js';
 export { default as ClothMeshManager } from './ClothMeshManager.js';
 export { default as HydraTextureManager } from './HydraTextureManager.js';
 export { default as SnapshotCompressor } from './SnapshotCompressor.js';
+export { SnapToGrains } from './SnapToGrains.js';
