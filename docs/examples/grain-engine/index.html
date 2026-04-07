@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrainEngine — treslib</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f0f0f;
+            color: #d4d4d4;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            line-height: 1.6;
+        }
+
+        a { color: #7ec8e3; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header { margin-bottom: 32px; }
+        header p { color: #888; font-size: 0.9em; margin: 4px 0 0; }
+        .back { font-size: 0.85em; color: #888; margin-bottom: 12px; display: block; }
+
+        h1 { font-size: 1.4em; margin: 0; color: #fff; }
+        h2 { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin: 28px 0 12px; }
+
+        .description {
+            font-size: 0.9em;
+            color: #aaa;
+            border-left: 2px solid #333;
+            padding-left: 14px;
+            margin-bottom: 28px;
+        }
+
+        .load-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] { color: #aaa; font-size: 0.85em; }
+
+        .actions { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+
+        button {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 0.85em;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover { border-color: #7ec8e3; color: #7ec8e3; }
+        button:disabled { opacity: 0.35; cursor: default; }
+        button.active { border-color: #7ec8e3; color: #7ec8e3; }
+
+        .preset-btn { border-color: #555; color: #aaa; font-size: 0.8em; padding: 6px 12px; }
+        .preset-btn:hover { border-color: #e3c47e; color: #e3c47e; }
+
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: 160px 1fr 52px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .control-row label { font-size: 0.85em; color: #aaa; }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 3px;
+            background: #333;
+            outline: none;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #7ec8e3;
+            cursor: pointer;
+        }
+
+        .val { font-size: 0.8em; color: #7ec8e3; text-align: right; }
+
+        .status-bar {
+            font-size: 0.8em;
+            color: #666;
+            border-top: 1px solid #222;
+            padding-top: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .status-bar span { color: #aaa; }
+    </style>
+</head>
+<body>
+    <a class="back" href="../../index.html">← treslib docs</a>
+
+    <header>
+        <h1>GrainEngine</h1>
+        <p>Motor de síntesis granular · inspirado en Warp1 (SuperCollider)</p>
+    </header>
+
+    <p class="description">
+        Carga un archivo de audio y explora la síntesis granular en tiempo real.
+        <code>overlaps</code> controla cuántos granos suenan simultáneamente;
+        <code>rate</code> controla exclusivamente el pitch de cada grano.
+    </p>
+
+    <h2>Sample</h2>
+    <div class="load-row">
+        <input type="file" id="audioFile" accept="audio/*">
+        <button id="loadBtn">Cargar</button>
+    </div>
+
+    <h2>Controles</h2>
+    <div class="actions">
+        <button id="engineBtn" disabled>Iniciar engine</button>
+    </div>
+
+    <h2>Presets</h2>
+    <div class="actions">
+        <button class="preset-btn" data-preset="dense">Textura densa</button>
+        <button class="preset-btn" data-preset="cloud">Nube</button>
+        <button class="preset-btn" data-preset="subtle">Sutil</button>
+    </div>
+
+    <h2>Parámetros</h2>
+    <div class="controls">
+        <div class="control-row">
+            <label>Pointer</label>
+            <input type="range" id="pointer" min="0" max="1" step="0.01" value="0">
+            <span id="pointerVal" class="val">0.00</span>
+        </div>
+        <div class="control-row">
+            <label>Rate (pitch)</label>
+            <input type="range" id="rate" min="0.1" max="4" step="0.05" value="1">
+            <span id="rateVal" class="val">1.00</span>
+        </div>
+        <div class="control-row">
+            <label>Overlaps</label>
+            <input type="range" id="overlaps" min="1" max="16" step="1" value="4">
+            <span id="overlapsVal" class="val">4</span>
+        </div>
+        <div class="control-row">
+            <label>Window size</label>
+            <input type="range" id="windowSize" min="0.01" max="0.5" step="0.01" value="0.1">
+            <span id="windowSizeVal" class="val">0.10</span>
+        </div>
+        <div class="control-row">
+            <label>Amplitud</label>
+            <input type="range" id="amp" min="0" max="2" step="0.01" value="1">
+            <span id="ampVal" class="val">1.00</span>
+        </div>
+        <div class="control-row">
+            <label>Random position</label>
+            <input type="range" id="randomPosition" min="0" max="1" step="0.01" value="0">
+            <span id="randomPositionVal" class="val">0.00</span>
+        </div>
+        <div class="control-row">
+            <label>Random pitch</label>
+            <input type="range" id="randomPitch" min="0" max="1" step="0.01" value="0">
+            <span id="randomPitchVal" class="val">0.00</span>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div>Estado: <span id="status">Carga un archivo de audio</span></div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>treslib</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f0f0f;
+            color: #d4d4d4;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 24px;
+            line-height: 1.7;
+        }
+
+        h1 { font-size: 1.6em; color: #fff; margin: 0 0 4px; }
+        .subtitle { color: #666; font-size: 0.9em; margin: 0 0 40px; }
+
+        h2 {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #555;
+            margin: 36px 0 14px;
+            border-bottom: 1px solid #1e1e1e;
+            padding-bottom: 6px;
+        }
+
+        .class-list { display: flex; flex-direction: column; gap: 2px; }
+
+        .class-item {
+            display: grid;
+            grid-template-columns: 220px 1fr auto;
+            align-items: baseline;
+            gap: 16px;
+            padding: 10px 0;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 0.88em;
+        }
+
+        .class-name { color: #7ec8e3; font-weight: bold; }
+        .class-desc { color: #888; }
+
+        a.demo-link {
+            font-size: 0.8em;
+            color: #555;
+            text-decoration: none;
+            border: 1px solid #333;
+            padding: 3px 10px;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+        a.demo-link:hover { border-color: #7ec8e3; color: #7ec8e3; }
+        a.demo-link.disabled { pointer-events: none; opacity: 0.3; }
+
+        .note {
+            font-size: 0.82em;
+            color: #555;
+            margin-top: 48px;
+            border-top: 1px solid #1e1e1e;
+            padding-top: 20px;
+        }
+        .note a { color: #666; }
+        .note a:hover { color: #aaa; }
+    </style>
+</head>
+<body>
+    <h1>treslib</h1>
+    <p class="subtitle">Librería JavaScript para creación audiovisual generativa</p>
+
+    <h2>Audio</h2>
+    <div class="class-list">
+        <div class="class-item">
+            <span class="class-name">GrainEngine</span>
+            <span class="class-desc">Motor de síntesis granular inspirado en Warp1</span>
+            <a class="demo-link" href="examples/grain-engine/">demo →</a>
+        </div>
+        <div class="class-item">
+            <span class="class-name">GrainSequencer</span>
+            <span class="class-desc">Secuenciador paramétrico para GrainEngine</span>
+            <a class="demo-link disabled" href="#">próximamente</a>
+        </div>
+        <div class="class-item">
+            <span class="class-name">OnsetDetector</span>
+            <span class="class-desc">Detección de ataques sonoros (algoritmo ERB de Collins)</span>
+            <a class="demo-link disabled" href="#">próximamente</a>
+        </div>
+        <div class="class-item">
+            <span class="class-name">AudioBufferRecorder</span>
+            <span class="class-desc">Grabador de audio en búfer circular</span>
+            <a class="demo-link disabled" href="#">próximamente</a>
+        </div>
+        <div class="class-item">
+            <span class="class-name">AudioManager</span>
+            <span class="class-desc">Gestión de audio general</span>
+            <a class="demo-link disabled" href="#">próximamente</a>
+        </div>
+    </div>
+
+    <h2>Visual</h2>
+    <div class="class-list">
+        <div class="class-item">
+            <span class="class-name">HydraTextureManager</span>
+            <span class="class-desc">Texturas generativas con Hydra → Three.js</span>
+            <a class="demo-link disabled" href="#">próximamente</a>
+        </div>
+        <div class="class-item">
+            <span class="class-name">ClothMeshManager</span>
+            <span class="class-desc">Mallas 3D deformables basadas en texturas Hydra</span>
+            <a class="demo-link disabled" href="#">próximamente</a>
+        </div>
+        <div class="class-item">
+            <span class="class-name">SnapshotCompressor</span>
+            <span class="class-desc">Compresión de frames visuales a 2bpp con dithering</span>
+            <a class="demo-link disabled" href="#">próximamente</a>
+        </div>
+    </div>
+
+    <h2>Freesound</h2>
+    <div class="class-list">
+        <div class="class-item">
+            <span class="class-name">FreeSoundSearcher</span>
+            <span class="class-desc">Cliente para búsqueda en Freesound.org</span>
+            <a class="demo-link disabled" href="#">próximamente</a>
+        </div>
+        <div class="class-item">
+            <span class="class-name">FreeSoundAudioLoader</span>
+            <span class="class-desc">Descarga y decodifica samples desde Freesound.org</span>
+            <a class="demo-link disabled" href="#">próximamente</a>
+        </div>
+    </div>
+
+    <p class="note">
+        treslib · <a href="https://github.com/EmilioOcelotl/treslib" target="_blank">GitHub</a>
+    </p>
+</body>
+</html>
