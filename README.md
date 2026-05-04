@@ -458,13 +458,11 @@ buffers.forEach((buffer, index) => {
 
 ## Proyectos
 
-### [Ciudad Monstruo](https://github.com/EmilioOcelotl/ciudad-monstruo)
+### [Ciudad Monstruo](https://0xacab.org/ocelotl/ciudad-monstruo)
 
 Partitura gráfica interactiva y motor de render de audio multicanal. Los trazos dibujados sobre un campo circular definen trayectorias espaciales que se renderizan como WAV multicanal (2/4/8 canales) vía DBAP offline.
 
-treslib se usa en la **interfaz radionauta** — una página separada que los intérpretes abren desde sus dispositivos en red local durante la performance. Al tocar una alcaldía del mapa de CDMX, un `GrainEngine` arranca con parámetros derivados de dos fuentes: densidad poblacional INEGI (hab/km²) y análisis visual de la región del SVG correspondiente via `SnapshotCompressor`. `SnapToGrains` mantiene la modulación continua del engine a partir del snapshot recortado de cada alcaldía.
-
-Módulos: `GrainEngine`, `SnapToGrains`, `SnapshotCompressor`.
+treslib se usa en la **interfaz radionauta**, una página separada que los intérpretes abren desde sus dispositivos en red local durante la performance. Al tocar una alcaldía del mapa de CDMX, un `GrainEngine` arranca con parámetros derivados de dos fuentes: densidad poblacional INEGI (hab/km²) y análisis visual de la región del SVG correspondiente via `SnapshotCompressor`. `SnapToGrains` mantiene la modulación continua del engine a partir del snapshot recortado de cada alcaldía.
 
 ---
 
