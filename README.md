@@ -319,6 +319,68 @@ Parámetros del constructor:
 | `maxRandomPitch` | `0.3` | rango máximo de `randomPitch` derivado del análisis |
 | `maxRandomPosition` | `0.01` | rango máximo de `randomPosition` derivado del análisis |
 
+## StrudelSync
+
+Gestiona el cambio ciclo-alineado de patrones de percusión en [Strudel](https://strudel.cc). Encapsula el state machine de `currentVariant` / `pendingVariant` y el timer que espera al próximo límite de ciclo antes de evaluar un nuevo patrón — evitando cortes a mitad de compás. Acepta un modificador de CPM por variante para patrones que corren a distinta velocidad (p.ej. mitad de tempo para secciones lentas).
+
+No importa Strudel directamente; recibe el REPL ya inicializado como argumento.
+
+```js
+import { StrudelSync } from 'treslib';
+import { webaudioRepl, initAudio, samples, getAudioContext,
+         evalScope, corePrelude, miniPrelude } from './strudel.bundle.js';
+
+const PATTERNS = {
+  SPARSE: `stack(
+    s(mini("bd ~ ~ ~ ~ ~ ~ ~ ~ ~ bd ~ ~ ~ ~ ~")),
+    s(mini("hh ~ hh ~ hh ~ hh ~ hh ~ hh ~ hh ~ hh ~")).gain(0.15)
+  )`,
+  DENSE: `stack(
+    s(mini("bd ~ bd ~ bd ~ ~ bd bd ~ ~ bd ~ bd ~ ~")),
+    s(mini("~ ~ ~ ~ sd ~ ~ ~ ~ ~ sd ~ ~ sd ~ ~")),
+    s(mini("hh*16")).gain(0.10)
+  )`,
+};
+
+let CPM = 60;
+
+// Inicializar Strudel una sola vez (primer gesto del usuario)
+await initAudio();
+await evalScope(corePrelude, miniPrelude);
+await samples({ bd: ['kick.wav'], sd: ['snare.wav'], hh: ['hh.wav'] });
+
+const repl = webaudioRepl();
+const sync = new StrudelSync(repl, getAudioContext, {
+  getCPM:     () => CPM,
+  patterns:   PATTERNS,
+  patternCPM: { SPARSE: cpm => cpm / 2 },  // SPARSE corre a la mitad de velocidad
+  gain:       2,
+});
+
+// Cambiar variante — espera al próximo límite de ciclo antes de evaluar
+sync.request('DENSE');
+
+// Re-evaluar la variante actual tras un cambio de tempo
+CPM = 90;
+sync.reapply();
+
+// Detener
+sync.stop();
+
+// Leer estado
+console.log(sync.currentVariant); // 'DENSE'
+console.log(sync.pendingVariant);  // null
+```
+
+Parámetros del constructor:
+
+| opción | default | descripción |
+|---|---|---|
+| `getCPM` | `() => 120` | función que devuelve el CPM actual |
+| `patterns` | `{}` | mapa `{ nombre: código_strudel }` |
+| `patternCPM` | `{}` | modificadores de CPM por variante: `{ nombre: cpm => cpm / 2 }` |
+| `gain` | `2` | ganancia aplicada a todos los patrones vía `.gain()` |
+
 ## OnsetDetector
 
 Detector de onsets (ataques sonoros) basado en el algoritmo psicoacústico de Nick Collins utilizado en MIREX. Implementa 40 bandas ERB (Equivalent Rectangular Bandwidth) y modelado de loudness espectral para una detección musicalmente relevante de transientes en señales de audio. Soporta dos modos: reproducción de buffer con detección simultánea, o análisis de fuente externa (micrófono, MediaStreamSource) sin reproducción.
@@ -465,6 +527,11 @@ Partitura gráfica interactiva y motor de render de audio multicanal. Los trazos
 treslib se usa en la **interfaz radionauta**, una página separada que los intérpretes abren desde sus dispositivos en red local durante la performance. Al tocar una alcaldía del mapa de CDMX, un `GrainEngine` arranca con parámetros derivados de dos fuentes: densidad poblacional INEGI (hab/km²) y análisis visual de la región del SVG correspondiente via `SnapshotCompressor`. `SnapToGrains` mantiene la modulación continua del engine a partir del snapshot recortado de cada alcaldía.
 
 ---
+
+## Dependencias externas
+
+- **[Hydra](https://hydra.ojack.xyz)** — síntesis visual en WebGL. Usada por `HydraTextureManager` y `ClothMeshManager`. Repositorio: [hydra-synth/hydra-synth](https://github.com/hydra-synth/hydra-synth).
+- **[Strudel](https://strudel.cc)** — live coding musical basado en TidalCycles para el navegador. Usada por `StrudelSync`. Repositorio: [uzu/strudel](https://codeberg.org/uzu/strudel).
 
 ## Referencias
 
