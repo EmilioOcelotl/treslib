@@ -3,6 +3,7 @@
   "version": "1.8.0",
   "description": "",
   "main": "./src/index.js",
+  "files": ["src", "README.md"],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:strudel": "esbuild docs/examples/snap-strudel/strudel-entry.js --bundle --format=esm --outfile=docs/examples/snap-strudel/strudel.bundle.js"
