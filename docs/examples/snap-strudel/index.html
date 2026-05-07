@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snap Strudel — treslib</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #d4d4d4;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            line-height: 1.6;
+        }
+
+        a { color: #7ec8e3; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .back { font-size: 0.85em; color: #555; margin-bottom: 12px; display: block; }
+        h1 { font-size: 1.4em; margin: 0; color: #ddd; }
+
+        header { margin-bottom: 24px; }
+        header p { color: #666; font-size: 0.9em; margin: 4px 0 0; }
+
+        h2 {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #444;
+            margin: 28px 0 10px;
+            border-bottom: 1px solid #161616;
+            padding-bottom: 6px;
+        }
+
+        .description {
+            font-size: 0.88em;
+            color: #555;
+            border-left: 2px solid #1e1e1e;
+            padding-left: 12px;
+            margin-bottom: 28px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] { color: #666; font-size: 0.82em; flex: 1; min-width: 0; }
+
+        .bpm-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82em;
+            color: #555;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100px;
+            height: 3px;
+            background: #2a2a2a;
+            outline: none;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #555;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover { background: #7ec8e3; }
+
+        button {
+            background: #0d0d0d;
+            color: #666;
+            border: 1px solid #222;
+            padding: 7px 14px;
+            font-family: inherit;
+            font-size: 0.82em;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: border-color 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+        button:hover { border-color: #444; color: #aaa; }
+        button:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+        button.active { border-color: #7ec8e3; color: #7ec8e3; }
+
+        #mosaic {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            margin: 20px 0;
+        }
+
+        .cell {
+            position: relative;
+            border: 2px solid #1a1a1a;
+            border-radius: 2px;
+            transition: border-color 0.1s;
+        }
+
+        .cell canvas {
+            display: block;
+            width: 100%;
+            aspect-ratio: 1;
+            image-rendering: pixelated;
+        }
+
+        .cell.active { border-color: #7ec8e3; }
+
+        .cell-label {
+            position: absolute;
+            bottom: 3px;
+            right: 4px;
+            font-size: 0.6em;
+            color: rgba(255,255,255,0.25);
+            line-height: 1;
+        }
+
+        .perc-indicator {
+            display: inline-block;
+            font-size: 0.75em;
+            padding: 2px 8px;
+            border: 1px solid #222;
+            border-radius: 2px;
+            color: #444;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .perc-indicator.dark  { border-color: #555; color: #888; }
+        .perc-indicator.mid   { border-color: #7ec8e3; color: #7ec8e3; }
+        .perc-indicator.dense { border-color: #ff8840; color: #ff8840; }
+        .perc-indicator.pending::after { content: ' →'; opacity: 0.5; }
+
+        .status-bar {
+            font-size: 0.78em;
+            color: #333;
+            border-top: 1px solid #161616;
+            padding-top: 14px;
+            margin-top: 24px;
+        }
+        .status-bar span { color: #555; }
+
+        .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <a class="back" href="../../index.html">← treslib docs</a>
+
+    <header>
+        <h1>Snap Strudel</h1>
+        <p>Granulación + percusión rítmica mapeada desde snapshots 2bpp</p>
+    </header>
+
+    <p class="description">
+        Cada snapshot se analiza: <code>brightness</code> determina el registro percusivo
+        (oscuro → graves, brillante → agudos), <code>complexity</code> determina la densidad rítmica.
+        La capa de percusión usa <code>drumtraks</code> vía Strudel; los cambios de patrón esperan
+        al final del ciclo actual. La capa granular usa el mismo pipeline de <code>SnapToGrains</code>
+        que <code>snap-sequencer</code>.
+    </p>
+
+    <h2>Granulación</h2>
+    <div class="controls">
+        <input type="file" id="audioFile" accept="audio/*">
+        <button id="loadBtn">Cargar</button>
+    </div>
+
+    <h2>Secuenciador</h2>
+    <div class="controls">
+        <button id="playBtn" disabled>Iniciar</button>
+        <button id="modeBtn">Orden: secuencial</button>
+        <div class="bpm-row">
+            BPM
+            <input type="range" id="bpm" min="20" max="120" value="35">
+            <span id="bpmVal">35</span>
+        </div>
+        <span id="percIndicator" class="perc-indicator">PERC —</span>
+    </div>
+
+    <div id="mosaic"></div>
+
+    <div class="status-bar">
+        Estado: <span id="status">Carga un archivo de audio para comenzar</span>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

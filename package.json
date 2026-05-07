@@ -4,12 +4,20 @@
   "description": "",
   "main": "./src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:strudel": "esbuild docs/examples/snap-strudel/strudel-entry.js --bundle --format=esm --outfile=docs/examples/snap-strudel/strudel.bundle.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "tween": "^0.9.0"
+  },
+  "devDependencies": {
+    "@kabelsalat/web": "^0.4.1",
+    "@strudel/core": "^1.2.6",
+    "@strudel/mini": "^1.2.6",
+    "@strudel/webaudio": "^1.2.6",
+    "esbuild": "^0.25.0"
   },
   "peerDependencies": {
     "three": ">=0.132.2",
