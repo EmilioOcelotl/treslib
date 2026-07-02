@@ -2,3 +2,5 @@ node_modules
 .vscode/
 CLAUDE.md
 .npmrc
+PENDIENTES.md
+.npmrc.bak
