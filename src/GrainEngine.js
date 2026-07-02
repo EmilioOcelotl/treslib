@@ -15,30 +15,34 @@ export class GrainEngine {
       this.gainPool = [];
       this.activeGrains = new Set();
 
+      // Sintaxis ES2018 a propósito (sin ?? ni ?.): hay consumidores con
+      // toolchains viejos (Parcel 1 / terser 3) que no la parsean.
+      const def = (v, d) => (v !== undefined ? v : d);
+
       // Parámetros granulares MEJORADOS
       this.parameters = {
           // Parámetro pointer MEJORADO para control externo
-          pointer:       { 
-              current: params.pointer ?? 0,       
-              target: params.pointer ?? 0,       
+          pointer:       {
+              current: def(params.pointer, 0),
+              target: def(params.pointer, 0),
               time: 0,
               min: 0,
               max: 1
           },
-          
+
           // Parámetros warp1 esenciales
-          rate:          { current: params.rate ?? 1,        target: params.rate ?? 1,        time: 0 },
-          overlaps:      { current: params.overlaps ?? 8,    target: params.overlaps ?? 8,    time: 0 },
-          
+          rate:          { current: def(params.rate, 1),        target: def(params.rate, 1),        time: 0 },
+          overlaps:      { current: def(params.overlaps, 8),    target: def(params.overlaps, 8),    time: 0 },
+
           // Parámetros existentes
-          freqScale:     { current: params.freqScale ?? 1,   target: params.freqScale ?? 1,   time: 0 },
-          windowSize:    { current: params.windowSize ?? 0.1, target: params.windowSize ?? 0.1, time: 0 },
-          overlap:       { current: params.overlap ?? 0.05,  target: params.overlap ?? 0.05,  time: 0 },
-          amp:           { current: params.amp ?? 1.0,       target: params.amp ?? 1.0,       time: 0 },
+          freqScale:     { current: def(params.freqScale, 1),   target: def(params.freqScale, 1),   time: 0 },
+          windowSize:    { current: def(params.windowSize, 0.1), target: def(params.windowSize, 0.1), time: 0 },
+          overlap:       { current: def(params.overlap, 0.05),  target: def(params.overlap, 0.05),  time: 0 },
+          amp:           { current: def(params.amp, 1.0),       target: def(params.amp, 1.0),       time: 0 },
 
           // Jitter
-          randomPosition: { current: params.randomPosition ?? 0, target: params.randomPosition ?? 0, time: 0 },
-          randomPitch:    { current: params.randomPitch ?? 0,    target: params.randomPitch ?? 0,    time: 0 }
+          randomPosition: { current: def(params.randomPosition, 0), target: def(params.randomPosition, 0), time: 0 },
+          randomPitch:    { current: def(params.randomPitch, 0),    target: def(params.randomPitch, 0),    time: 0 }
       };
 
       // Constantes
@@ -136,7 +140,8 @@ export class GrainEngine {
   // Obtener valores actuales
   // --------------------------
   getParam(paramName) {
-      return this.parameters[paramName]?.target ?? 0;
+      const p = this.parameters[paramName];
+      return p ? p.target : 0;
   }
 
   // --------------------------
