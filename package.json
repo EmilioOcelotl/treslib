@@ -26,5 +26,13 @@
   "peerDependencies": {
     "three": ">=0.132.2",
     "hydra-synth": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "three": {
+      "optional": true
+    },
+    "hydra-synth": {
+      "optional": true
+    }
   }
 }
