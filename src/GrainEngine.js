@@ -246,12 +246,12 @@ export class GrainEngine {
       // Crear NUEVO source node cada vez (no reutilizar)
       const source = this.audioCtx.createBufferSource();
       source.buffer = this.buffer; // Asignar buffer una sola vez
-      
+
       // Reutilizar solo gain nodes
       const gainNode = this.getGainFromPool();
 
       source.playbackRate.value = playbackRate;
-      
+
       // Conectar: source → gainNode → masterAmp → output
       source.connect(gainNode);
       gainNode.connect(this.masterAmp);
@@ -259,8 +259,18 @@ export class GrainEngine {
       // Aplicar envolvente y amplitud
       this.applyGrainEnvelope(gainNode, startTime, duration, amp);
 
+      // La duración de start() se mide en segundos de buffer, pero la
+      // envolvente dura `duration` en tiempo real: con playbackRate ≠ 1 hay
+      // que escalar para que el source no termine antes de que la envolvente
+      // cierre en 0 (clic por grano).
+      const bufSpan = duration * playbackRate;
+      // Clampear el offset para que el grano completo quepa en el buffer;
+      // sin esto, con pointer ≈ 1 el source se queda sin muestras a mitad de
+      // la envolvente (ráfaga de granos truncados).
+      const offset = Math.max(0, Math.min(bufferOffset, this.buffer.duration - bufSpan));
+
       // Programar inicio y fin
-      source.start(startTime, bufferOffset, duration);
+      source.start(startTime, offset, bufSpan);
       
       // No necesitamos source.stop() si usamos duration en start()
 
